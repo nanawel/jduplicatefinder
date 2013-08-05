@@ -30,6 +30,12 @@ import nnwl.jduplicatefinder.util.Files;
 
 import org.apache.log4j.Logger;
 
+/**
+ * JDuplicateFinder
+ *  
+ * @author Anael Ollier <nanawel NOSPAM [at] gmail [dot] com>
+ * @license GPLv3 - See LICENSE
+ */
 public class FileInfoPanel extends JPanel
 {
 	private static final long serialVersionUID = -1297040469251939023L;

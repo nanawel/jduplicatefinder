@@ -11,6 +11,12 @@ import nnwl.jduplicatefinder.engine.comparators.event.ComparatorExceptionEvent;
 import nnwl.jduplicatefinder.engine.comparators.event.ComparatorListener;
 import nnwl.jduplicatefinder.engine.comparators.exception.ComparatorException;
 
+/**
+ * JDuplicateFinder
+ *  
+ * @author Anael Ollier <nanawel NOSPAM [at] gmail [dot] com>
+ * @license GPLv3 - See LICENSE
+ */
 abstract public class AbstractDuplicateComparator implements Runnable
 {
 	protected String code;

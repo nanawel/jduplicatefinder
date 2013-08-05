@@ -14,7 +14,12 @@ import nnwl.jduplicatefinder.engine.SimilarityResult;
 
 import org.apache.log4j.Logger;
 
-
+/**
+ * JDuplicateFinder
+ *  
+ * @author Anael Ollier <nanawel NOSPAM [at] gmail [dot] com>
+ * @license GPLv3 - See LICENSE
+ */
 public class ResultsTreeCellRenderer extends DefaultTreeCellRenderer
 {
 	private static final Logger logger = Logger.getLogger(ResultsTreeCellRenderer.class);

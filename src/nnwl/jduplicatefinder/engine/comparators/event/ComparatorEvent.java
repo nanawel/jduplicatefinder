@@ -2,6 +2,12 @@ package nnwl.jduplicatefinder.engine.comparators.event;
 
 import nnwl.jduplicatefinder.engine.comparators.AbstractDuplicateComparator;
 
+/**
+ * JDuplicateFinder
+ *  
+ * @author Anael Ollier <nanawel NOSPAM [at] gmail [dot] com>
+ * @license GPLv3 - See LICENSE
+ */
 public class ComparatorEvent
 {
 	protected AbstractDuplicateComparator comparator;

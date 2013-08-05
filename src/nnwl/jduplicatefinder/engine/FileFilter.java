@@ -3,6 +3,12 @@ package nnwl.jduplicatefinder.engine;
 import java.io.File;
 import java.util.regex.Pattern;
 
+/**
+ * JDuplicateFinder
+ *  
+ * @author Anael Ollier <nanawel NOSPAM [at] gmail [dot] com>
+ * @license GPLv3 - See LICENSE
+ */
 public class FileFilter
 {
 	public static final String MATCH_FILENAME = "Filename";

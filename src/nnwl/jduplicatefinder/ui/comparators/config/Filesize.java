@@ -18,6 +18,12 @@ import javax.swing.SwingConstants;
 import nnwl.jduplicatefinder.engine.comparators.AbstractDuplicateComparator;
 import javax.swing.border.EmptyBorder;
 
+/**
+ * JDuplicateFinder
+ *  
+ * @author Anael Ollier <nanawel NOSPAM [at] gmail [dot] com>
+ * @license GPLv3 - See LICENSE
+ */
 public class Filesize extends JPanel implements ComparatorConfigPanel
 {
 	private static final long serialVersionUID = 272080702154953921L;

@@ -29,7 +29,7 @@ import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JProgressBar;
-import javax.swing.ProgressMonitorInputStream;
+import javax.swing.ProgressMonitor;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 import javax.swing.event.ChangeEvent;
@@ -37,31 +37,8 @@ import javax.swing.event.ChangeListener;
 import javax.swing.text.AttributeSet;
 
 
-/** A class to monitor the progress of some operation. If it looks
- * like the operation will take a while, a progress dialog will be popped up.
- * When the ProgressMonitor is created it is given a numeric range and a
- * descriptive string. As the operation progresses, call the setProgress method
- * to indicate how far along the [min,max] range the operation is.
- * Initially, there is no ProgressDialog. After the first millisToDecideToPopup
- * milliseconds (default 500) the progress monitor will predict how long
- * the operation will take.  If it is longer than millisToPopup (default 2000,
- * 2 seconds) a ProgressDialog will be popped up.
- * <p>
- * From time to time, when the Dialog box is visible, the progress bar will
- * be updated when setProgress is called.  setProgress won't always update
- * the progress bar, it will only be done if the amount of progress is
- * visibly significant.
- *
- * <p>
- *
- * For further documentation and examples see
- * <a
- href="http://java.sun.com/docs/books/tutorial/uiswing/components/progress.html">How to Monitor Progress</a>,
- * a section in <em>The Java Tutorial.</em>
- *
- * @see ProgressMonitorInputStream
- * @author James Gosling
- * @author Lynn Monsanto (accessibility)
+/**
+ * @see ProgressMonitor
  */
 public class EnhancedProgressMonitor implements Accessible
 {
@@ -142,7 +119,8 @@ public class EnhancedProgressMonitor implements Accessible
     }
 
 
-    private class ProgressOptionPane extends JOptionPane
+    @SuppressWarnings("serial")
+	private class ProgressOptionPane extends JOptionPane
     {
         ProgressOptionPane(Object messageList) {
             super(messageList,
@@ -748,7 +726,8 @@ public class EnhancedProgressMonitor implements Accessible
         /*
          * Returns the parent AccessibleContext
          */
-        private AccessibleContext getParentAccessibleContext() {
+        @SuppressWarnings("unused")
+		private AccessibleContext getParentAccessibleContext() {
             if (dialog != null) {
                 return dialog.getAccessibleContext();
             }

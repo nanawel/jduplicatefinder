@@ -2,6 +2,12 @@ package nnwl.jduplicatefinder.engine.event;
 
 import nnwl.jduplicatefinder.engine.Runner;
 
+/**
+ * JDuplicateFinder
+ *  
+ * @author Anael Ollier <nanawel NOSPAM [at] gmail [dot] com>
+ * @license GPLv3 - See LICENSE
+ */
 public class RunnerEvent
 {
 	protected Runner runner;

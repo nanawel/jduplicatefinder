@@ -1,5 +1,11 @@
 package nnwl.jduplicatefinder.ui.tree;
 
+/**
+ * JDuplicateFinder
+ *  
+ * @author Anael Ollier <nanawel NOSPAM [at] gmail [dot] com>
+ * @license GPLv3 - See LICENSE
+ */
 import java.util.ArrayList;
 import java.util.List;
 

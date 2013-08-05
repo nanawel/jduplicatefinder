@@ -65,6 +65,12 @@ import nnwl.rewrite.javax.swing.EnhancedProgressMonitor;
 import org.apache.log4j.Logger;
 import org.apache.log4j.PropertyConfigurator;
 
+/**
+ * JDuplicateFinder
+ *  
+ * @author Anael Ollier <nanawel NOSPAM [at] gmail [dot] com>
+ * @license GPLv3 - See LICENSE
+ */
 public class App
 {
 	public static String APP_NAME = "JDuplicateFinder";
@@ -84,6 +90,8 @@ public class App
 	private JLabel lblStatus;
 
 	private final Action actionRun = new RunAction();
+
+	private final Action actionClear = new ClearAction();
 
 	private ResultsTree treeLeft;
 
@@ -165,7 +173,7 @@ public class App
 		frmMain.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		frmMain.getContentPane().setLayout(new BorderLayout(0, 0));
 
-		////////////
+		// //////////
 		// TOOLBAR
 		JToolBar toolBar = new JToolBar();
 		frmMain.getContentPane().add(toolBar, BorderLayout.NORTH);
@@ -178,18 +186,23 @@ public class App
 		JSeparator separator = new JSeparator();
 		toolBar.add(separator);
 
+		JButton btnClearResults = new JButton("Clear results");
+		btnClearResults.setAction(actionClear);
+		btnClearResults.setIcon(new ImageIcon(App.class.getResource("/icons/edit-clear.png")));
+		toolBar.add(btnClearResults);
+
 		JLabel lblJduplicatefinderV = new JLabel("<html>" + APP_NAME + " v" + APP_VERSION
 				+ "<br/>nanawel@gmail.com</html>");
 		lblJduplicatefinderV.setHorizontalAlignment(SwingConstants.RIGHT);
 		toolBar.add(lblJduplicatefinderV);
 
-		////////////
+		// //////////
 		// MAIN PANEL
 		JPanel panel = new JPanel();
 		frmMain.getContentPane().add(panel, BorderLayout.CENTER);
 		panel.setLayout(new BorderLayout(2, 2));
 
-		////////////
+		// //////////
 		// STATUS BAR (South)
 		JPanel statusBar = new JPanel();
 		statusBar.setBorder(new EtchedBorder(EtchedBorder.RAISED, null, null));
@@ -210,7 +223,7 @@ public class App
 		gbc_lblStatus.gridx = 0;
 		gbc_lblStatus.gridy = 0;
 		statusBar.add(lblStatus, gbc_lblStatus);
-		
+
 		JSeparator sepStatusBar = new JSeparator();
 		sepStatusBar.setForeground(Color.GRAY);
 		sepStatusBar.setOrientation(SwingConstants.VERTICAL);
@@ -227,10 +240,10 @@ public class App
 		gbc_lblMemoryStatus.gridx = 2;
 		gbc_lblMemoryStatus.gridy = 0;
 		statusBar.add(lblMemoryStatus, gbc_lblMemoryStatus);
-		
+
 		this.startMemoryWatcher(lblMemoryStatus);
-		
-		////////////
+
+		// //////////
 		// TREES & FILE INFO
 		treeModel = new ResultsTreeModel();
 
@@ -252,7 +265,7 @@ public class App
 		rightPane.add(fileInfoPanel, BorderLayout.SOUTH);
 		resultsSplitpane.setResizeWeight(0.5);
 
-		////////////
+		// //////////
 		// CONFIG TABS
 		configTabbedPane = new JTabbedPane(JTabbedPane.TOP);
 
@@ -378,9 +391,7 @@ public class App
 
 	public void run() throws Exception {
 		// Clean memory a little
-		this.fileInfoPanel.clear();
-		this.treeModel.resetResults();
-		System.gc();
+		this.clearResults();
 
 		ArrayList<File> folders = new ArrayList<File>();
 
@@ -432,6 +443,16 @@ public class App
 		runnerThread.start();
 	}
 
+	public void clearResults() {
+		this.fileInfoPanel.clear();
+		this.treeModel.resetResults();
+		this.treeModel.reload();
+		System.gc();
+		
+		this.setStatusMessage("Press Run to search again");
+		logger.info("Results cleared");
+	}
+
 	public void setStatusMessage(String message) {
 		this.lblStatus.setText(message);
 	}
@@ -458,6 +479,20 @@ public class App
 				ex.printStackTrace();
 				JOptionPane.showMessageDialog(App.this.frmMain, ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
 			}
+		}
+	}
+
+	private class ClearAction extends AbstractAction
+	{
+		private static final long serialVersionUID = 1L;
+
+		public ClearAction() {
+			putValue(NAME, "Clear results");
+			putValue(SHORT_DESCRIPTION, "Clear all results");
+		}
+
+		public void actionPerformed(ActionEvent e) {
+			App.this.clearResults();
 		}
 	}
 
@@ -518,7 +553,7 @@ public class App
 									+ ev.getProgressPercent() + "%)<br/>Press Cancel to skip.</html>");
 						}
 					});
-					Thread expanderThread = new Thread(expander);
+					Thread expanderThread = new Thread(expander, "ResultsTree-Expander");
 					expanderThread.start();
 					try {
 						expanderThread.join();

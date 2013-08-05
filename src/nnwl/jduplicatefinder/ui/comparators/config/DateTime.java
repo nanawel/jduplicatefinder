@@ -18,6 +18,12 @@ import javax.swing.SwingConstants;
 import nnwl.jduplicatefinder.engine.comparators.AbstractDuplicateComparator;
 import javax.swing.border.EmptyBorder;
 
+/**
+ * JDuplicateFinder
+ *  
+ * @author Anael Ollier <nanawel NOSPAM [at] gmail [dot] com>
+ * @license GPLv3 - See LICENSE
+ */
 @SuppressWarnings("rawtypes")
 public class DateTime extends JPanel implements ComparatorConfigPanel
 {

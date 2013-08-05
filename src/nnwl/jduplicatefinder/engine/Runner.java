@@ -22,6 +22,12 @@ import nnwl.jduplicatefinder.engine.event.RunnerListener;
 
 import org.apache.log4j.Logger;
 
+/**
+ * JDuplicateFinder
+ *  
+ * @author Anael Ollier <nanawel NOSPAM [at] gmail [dot] com>
+ * @license GPLv3 - See LICENSE
+ */
 public class Runner implements Runnable
 {
 	/**

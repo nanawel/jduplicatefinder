@@ -2,6 +2,12 @@ package nnwl.jduplicatefinder.ui;
 
 import javax.swing.JLabel;
 
+/**
+ * JDuplicateFinder
+ *  
+ * @author Anael Ollier <nanawel NOSPAM [at] gmail [dot] com>
+ * @license GPLv3 - See LICENSE
+ */
 public class MemoryWatcher implements Runnable
 {
 	private JLabel label;

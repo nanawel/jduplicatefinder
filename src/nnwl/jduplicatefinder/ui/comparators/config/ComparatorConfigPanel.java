@@ -6,6 +6,12 @@ import javax.swing.Icon;
 
 import nnwl.jduplicatefinder.engine.comparators.AbstractDuplicateComparator;
 
+/**
+ * JDuplicateFinder
+ *  
+ * @author Anael Ollier <nanawel NOSPAM [at] gmail [dot] com>
+ * @license GPLv3 - See LICENSE
+ */
 public interface ComparatorConfigPanel
 {
 	String getTitle();

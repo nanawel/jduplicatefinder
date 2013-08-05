@@ -34,6 +34,12 @@ import javax.swing.border.TitledBorder;
 
 import nnwl.jduplicatefinder.engine.FileFilter;
 
+/**
+ * JDuplicateFinder
+ *  
+ * @author Anael Ollier <nanawel NOSPAM [at] gmail [dot] com>
+ * @license GPLv3 - See LICENSE
+ */
 public class FileFilterStackPanel extends JPanel
 {
 	private static final long serialVersionUID = -5631292906017075812L;

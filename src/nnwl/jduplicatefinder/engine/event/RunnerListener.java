@@ -1,5 +1,11 @@
 package nnwl.jduplicatefinder.engine.event;
 
+/**
+ * JDuplicateFinder
+ *  
+ * @author Anael Ollier <nanawel NOSPAM [at] gmail [dot] com>
+ * @license GPLv3 - See LICENSE
+ */
 public interface RunnerListener
 {
 	void statusChanged(RunnerEvent ev);

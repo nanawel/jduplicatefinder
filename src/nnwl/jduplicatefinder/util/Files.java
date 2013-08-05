@@ -1,5 +1,11 @@
 package nnwl.jduplicatefinder.util;
 
+/**
+ * JDuplicateFinder
+ *  
+ * @author Anael Ollier <nanawel NOSPAM [at] gmail [dot] com>
+ * @license GPLv3 - See LICENSE
+ */
 public class Files
 {
 	public static String humanReadableByteCount(long bytes, boolean si) {
