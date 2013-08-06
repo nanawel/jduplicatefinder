@@ -1,7 +1,7 @@
 JDuplicateFinder
 ================
 
-Help you find duplicate files depending on various criteria.
+Helps you find duplicate files depending on various criteria.
 The objective was to visualize quickly all the duplicate for each file located in a given folder, in order to decide the ones that should be deleted.
 
 
