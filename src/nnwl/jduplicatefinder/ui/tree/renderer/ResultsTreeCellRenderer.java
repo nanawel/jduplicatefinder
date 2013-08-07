@@ -69,7 +69,9 @@ public class ResultsTreeCellRenderer extends DefaultTreeCellRenderer
 			stringValue = "<html><b>" + stringValue + "</b></html>";
 		}
 		else if (userObject instanceof SimilarityResult) {
-			stringValue = tree.convertValueToText(userObject, sel, expanded, leaf, row, hasFocus);
+			//stringValue = tree.convertValueToText(userObject, sel, expanded, leaf, row, hasFocus);
+			SimilarityResult sr = (SimilarityResult) userObject;
+			stringValue = "<html><b>[" + sr.getSimilarity() + "%]</b> " + sr.getSimilarFile().getAbsolutePath() + "</html>";
 			float similarity = (float) ((SimilarityResult) userObject).getSimilarity();
 			int index = (int) Math.floor(similarity / 25) * 25;
 			switch (index) {

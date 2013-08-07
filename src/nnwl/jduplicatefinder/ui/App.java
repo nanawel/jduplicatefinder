@@ -3,6 +3,7 @@ package nnwl.jduplicatefinder.ui;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
+import java.awt.Cursor;
 import java.awt.Desktop;
 import java.awt.Dimension;
 import java.awt.EventQueue;
@@ -15,6 +16,7 @@ import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.File;
+import java.net.URI;
 import java.nio.file.Path;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
@@ -23,6 +25,7 @@ import java.util.Map;
 
 import javax.swing.AbstractAction;
 import javax.swing.Action;
+import javax.swing.Box;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
@@ -75,7 +78,7 @@ public class App
 {
 	public static String APP_NAME = "JDuplicateFinder";
 
-	public static String APP_VERSION = "1.0-alpha";
+	public static String APP_VERSION = "1.0";
 
 	private static final Logger logger = Logger.getLogger(App.class);
 
@@ -127,7 +130,7 @@ public class App
 
 					File[] paths = null;
 					if (args.length > 0) {
-						logger.debug("App launched with " + args.length + " args");
+						logger.debug("App launched with " + args.length + " arg(s)");
 						app.setDefaultFolderPath(args[0]);
 
 						paths = new File[args.length];
@@ -183,19 +186,42 @@ public class App
 		toolbarbtnRun.setIcon(new ImageIcon(App.class.getResource("/icons/go-next.png")));
 		toolBar.add(toolbarbtnRun);
 
-		JSeparator separator = new JSeparator();
-		toolBar.add(separator);
-
 		JButton btnClearResults = new JButton("Clear results");
 		btnClearResults.setAction(actionClear);
 		btnClearResults.setIcon(new ImageIcon(App.class.getResource("/icons/edit-clear.png")));
 		toolBar.add(btnClearResults);
+		
+		toolBar.add(Box.createHorizontalGlue());
 
-		JLabel lblJduplicatefinderV = new JLabel("<html>" + APP_NAME + " v" + APP_VERSION
+		final JLabel lblAbout = new JLabel("<html>" + APP_NAME + " v" + APP_VERSION
 				+ "<br/>nanawel@gmail.com</html>");
-		lblJduplicatefinderV.setHorizontalAlignment(SwingConstants.RIGHT);
-		toolBar.add(lblJduplicatefinderV);
+		lblAbout.setForeground(Color.GRAY);
+		lblAbout.setPreferredSize(lblAbout.getPreferredSize());
+		lblAbout.setMaximumSize(lblAbout.getPreferredSize());
+		lblAbout.addMouseListener(new MouseAdapter() {
+			@Override
+			public void mouseClicked(MouseEvent e) {
+				try {
+					Desktop.getDesktop().browse(new URI("http://lanterne-rouge.over-blog.org/"));
+				}
+				catch (Exception e1) {}
+			}
 
+			@Override
+			public void mouseEntered(MouseEvent e) {
+				lblAbout.setForeground(Color.BLUE);
+				lblAbout.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+			}
+			
+			@Override
+			public void mouseExited(MouseEvent e) {
+				lblAbout.setForeground(Color.GRAY);
+				lblAbout.setCursor(Cursor.getDefaultCursor());
+			}
+		});
+		lblAbout.setToolTipText("Go to author's blog");
+		toolBar.add(lblAbout);
+		
 		// //////////
 		// MAIN PANEL
 		JPanel panel = new JPanel();
@@ -458,7 +484,7 @@ public class App
 	}
 
 	private void startMemoryWatcher(JLabel lblMemoryStatus) {
-		Thread t = new Thread(new MemoryWatcher(lblMemoryStatus));
+		Thread t = new Thread(new MemoryWatcher(lblMemoryStatus), "MemoryWatcher");
 		t.start();
 	}
 
@@ -937,6 +963,7 @@ public class App
 		public void valueChanged(TreeSelectionEvent e) {
 			ResultsTree sourceTree = (ResultsTree) e.getSource();
 			ResultsTree otherTree = this.getOtherTree(sourceTree);
+			JScrollPane otherScrollPane = this.getOtherScrollpane(sourceTree);
 
 			DefaultMutableTreeNode selectedNode = (DefaultMutableTreeNode) sourceTree.getLastSelectedPathComponent();
 			if (selectedNode == null) {
@@ -959,6 +986,8 @@ public class App
 				otherTree.collapse();
 				otherTree.setSelectionPath(path);
 				otherTree.expandPath(path);
+				
+				otherScrollPane.getViewport().scrollRectToVisible(otherTree.getPathBounds(path));
 			}
 			else {
 				App.this.fileInfoPanel.clear();
@@ -967,6 +996,10 @@ public class App
 
 		private ResultsTree getOtherTree(ResultsTree t) {
 			return App.this.treeLeft == t ? App.this.treeRight : App.this.treeLeft;
+		}
+
+		private JScrollPane getOtherScrollpane(ResultsTree t) {
+			return App.this.treeLeft == t ? App.this.scrollPaneRight : App.this.scrollPaneLeft;
 		}
 	}
 }
