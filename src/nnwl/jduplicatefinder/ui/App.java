@@ -10,6 +10,7 @@ import java.awt.EventQueue;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
+import java.awt.Rectangle;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -961,9 +962,9 @@ public class App
 	{
 		@Override
 		public void valueChanged(TreeSelectionEvent e) {
-			ResultsTree sourceTree = (ResultsTree) e.getSource();
-			ResultsTree otherTree = this.getOtherTree(sourceTree);
-			JScrollPane otherScrollPane = this.getOtherScrollpane(sourceTree);
+			final ResultsTree sourceTree = (ResultsTree) e.getSource();
+			final ResultsTree otherTree = this.getOtherTree(sourceTree);
+			//final JScrollPane otherScrollPane = this.getOtherScrollpane(sourceTree);
 
 			DefaultMutableTreeNode selectedNode = (DefaultMutableTreeNode) sourceTree.getLastSelectedPathComponent();
 			if (selectedNode == null) {
@@ -982,12 +983,16 @@ public class App
 
 				DefaultMutableTreeNode similarFileNode = App.this.treeModel.getNodeFromPath(similarFile);
 
-				TreePath path = new TreePath(similarFileNode.getPath());
+				final TreePath path = new TreePath(similarFileNode.getPath());
 				otherTree.collapse();
 				otherTree.setSelectionPath(path);
 				otherTree.expandPath(path);
 				
-				otherScrollPane.getViewport().scrollRectToVisible(otherTree.getPathBounds(path));
+				// Scroll to that node
+				// TODO Improve that
+				Rectangle bounds = otherTree.getPathBounds(path);
+				bounds.height = otherTree.getVisibleRect().height;
+				otherTree.scrollRectToVisible(bounds);
 			}
 			else {
 				App.this.fileInfoPanel.clear();
@@ -998,8 +1003,8 @@ public class App
 			return App.this.treeLeft == t ? App.this.treeRight : App.this.treeLeft;
 		}
 
-		private JScrollPane getOtherScrollpane(ResultsTree t) {
-			return App.this.treeLeft == t ? App.this.scrollPaneRight : App.this.scrollPaneLeft;
-		}
+//		private JScrollPane getOtherScrollpane(ResultsTree t) {
+//			return App.this.treeLeft == t ? App.this.scrollPaneRight : App.this.scrollPaneLeft;
+//		}
 	}
 }
