@@ -1,52 +1,37 @@
 package nnwl.jduplicatefinder.ui;
 
-import java.awt.BorderLayout;
-import java.awt.Container;
-import java.awt.Dimension;
-import java.awt.GridBagConstraints;
-import java.awt.GridBagLayout;
-import java.awt.GridLayout;
-import java.awt.Insets;
+import nnwl.jduplicatefinder.engine.FileFilter;
+
+import javax.swing.*;
+import javax.swing.border.BevelBorder;
+import javax.swing.border.EmptyBorder;
+import javax.swing.border.TitledBorder;
+import java.awt.*;
 import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.swing.AbstractAction;
-import javax.swing.Action;
-import javax.swing.BoxLayout;
-import javax.swing.ButtonGroup;
-import javax.swing.DefaultComboBoxModel;
-import javax.swing.ImageIcon;
-import javax.swing.JButton;
-import javax.swing.JComboBox;
-import javax.swing.JLabel;
-import javax.swing.JPanel;
-import javax.swing.JRadioButton;
-import javax.swing.JScrollPane;
-import javax.swing.JTextField;
-import javax.swing.ScrollPaneConstants;
-import javax.swing.SwingUtilities;
-import javax.swing.border.BevelBorder;
-import javax.swing.border.EmptyBorder;
-import javax.swing.border.TitledBorder;
-
-import nnwl.jduplicatefinder.engine.FileFilter;
-
 /**
  * JDuplicateFinder
- *  
+ *
  * @author Anael Ollier <nanawel NOSPAM [at] gmail [dot] com>
  * @license GPLv3 - See LICENSE
  */
-public class FileFilterStackPanel extends JPanel
-{
+public class FileFilterStackPanel extends JPanel {
 	private static final long serialVersionUID = -5631292906017075812L;
 
 	private JPanel filtersContainer;
 
+	private JButton btnAdd;
+
+	private JPopupMenu addMenu;
+
 	private final Action addAction = new AddFilterAction();
+
+	private List<FileFilter> predefinedFilters;
 
 	/**
 	 * Create the panel.
@@ -64,10 +49,12 @@ public class FileFilterStackPanel extends JPanel
 		mainPanel.add(leftPanel, BorderLayout.WEST);
 		leftPanel.setLayout(new GridLayout(1, 1, 0, 0));
 
-		JButton btnAdd = new JButton("");
+		btnAdd = new JButton("");
 		btnAdd.setAction(addAction);
 		btnAdd.setIcon(new ImageIcon(FileFilterStackPanel.class.getResource("/icons/list-add.png")));
 		leftPanel.add(btnAdd);
+
+		this.createAddMenu();
 
 		JScrollPane scrollPane = new JScrollPane();
 		scrollPane.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
@@ -84,10 +71,71 @@ public class FileFilterStackPanel extends JPanel
 		//this.addEmptyFilter();
 	}
 
-	public void addEmptyFilter() {
+	public void setPredefinedFilters(List<FileFilter> filters) {
+		this.predefinedFilters = filters;
+		this.createAddMenu();
+	}
+
+	protected void createAddMenu() {
+		addMenu = new JPopupMenu();
+		JMenuItem it = new JMenuItem("(Empty)",
+				new ImageIcon(FileFilterStackPanel.class.getResource("/icons/i16x16/view-filter.png")));
+		it.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				FileFilterStackPanel.this.addEmptyFilter();
+			}
+		});
+		addMenu.add(it);
+
+		addMenu.addSeparator();
+
+		JMenu m = new JMenu("Predefined...");
+		addMenu.add(m);
+
+		if (this.predefinedFilters == null || this.predefinedFilters.isEmpty()) {
+			it = new JMenuItem("<None>");
+			it.setEnabled(false);
+			m.add(it);
+		} else {
+			for (FileFilter ff : this.predefinedFilters) {
+				it = new JMenuItem(ff.getTitle(),
+						new ImageIcon(FileFilterStackPanel.class.getResource("/icons/i16x16/view-filter.png")));
+				it.putClientProperty("filtermodel", ff);
+				it.addActionListener(new ActionListener() {
+					@Override
+					public void actionPerformed(ActionEvent e) {
+						FileFilterStackPanel.this.addFilter((FileFilter) ((JMenuItem) e.getSource()).getClientProperty("filtermodel"));
+					}
+				});
+				m.add(it);
+			}
+		}
+	}
+
+	protected Filter addFilter() {
 		Filter f = new Filter();
 		this.filtersContainer.add(f);
 		this.filtersContainer.revalidate();
+		return f;
+	}
+
+	protected Filter addFilter(FileFilter ff) {
+		Filter f = new Filter(ff);
+		this.filtersContainer.add(f);
+		this.filtersContainer.revalidate();
+		return f;
+	}
+
+	public void addEmptyFilter() {
+		this.addFilter();
+	}
+
+	public void addFilter(String pattern, String matches, String type) {
+		Filter f = this.addFilter();
+		f.setPattern(pattern);
+		f.setMatches(matches);
+		f.setType(type);
 	}
 
 	public FileFilter[] getFilters() {
@@ -102,17 +150,18 @@ public class FileFilterStackPanel extends JPanel
 		return filters.toArray(new FileFilter[0]);
 	}
 
-	private class Filter extends JPanel
-	{
+	private class Filter extends JPanel {
 		private static final long serialVersionUID = 8064480803876696578L;
 
 		private JTextField txtPattern;
 
 		protected ButtonGroup rdbtngrpType;
 
+		protected JRadioButton rdbtnType[];
+
 		protected JComboBox<String> cbboxMatches;
 
-		@SuppressWarnings({ "unchecked", "rawtypes" })
+		@SuppressWarnings({"unchecked", "rawtypes"})
 		public Filter() {
 			super();
 
@@ -121,10 +170,10 @@ public class FileFilterStackPanel extends JPanel
 			int gridx = 0;
 
 			GridBagLayout gbl_this = new GridBagLayout();
-			gbl_this.columnWidths = new int[] { 0, 0, 0, 0, 0, 0, 0, 0, 0 };
-			gbl_this.rowHeights = new int[] { 0, 0 };
-			gbl_this.columnWeights = new double[] { 0.0, 1.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0 };
-			gbl_this.rowWeights = new double[] { 0.0, Double.MIN_VALUE };
+			gbl_this.columnWidths = new int[]{0, 0, 0, 0, 0, 0, 0, 0, 0};
+			gbl_this.rowHeights = new int[]{0, 0};
+			gbl_this.columnWeights = new double[]{0.0, 1.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0};
+			gbl_this.rowWeights = new double[]{0.0, Double.MIN_VALUE};
 			this.setLayout(gbl_this);
 
 			JLabel lblFilter = new JLabel("Filter:");
@@ -169,19 +218,24 @@ public class FileFilterStackPanel extends JPanel
 			this.add(lblType, gbc_lblType);
 
 			rdbtngrpType = new ButtonGroup();
+			rdbtnType = new JRadioButton[FileFilter.TYPE_CHOICES.length];
 			int n = 0;
-			for (String type : FileFilter.TYPE_CHOICES) {
-				JRadioButton rdbtnType = new JRadioButton(type);
-				rdbtnType.setActionCommand(type);
+			for (int i = 0; i < FileFilter.TYPE_CHOICES.length; i++) {
+				String type = FileFilter.TYPE_CHOICES[i];
+				String tooltip = FileFilter.TYPE_TOOLTIPS[i];
+
+				rdbtnType[i] = new JRadioButton(type);
+				rdbtnType[i].setToolTipText(tooltip);
+				rdbtnType[i].setActionCommand(type);
 				if (n++ == 0) {
-					rdbtnType.setSelected(true);
+					rdbtnType[i].setSelected(true);
 				}
 				GridBagConstraints gbc_rdbtnType = new GridBagConstraints();
 				gbc_rdbtnType.insets = new Insets(0, 0, 0, 5);
 				gbc_rdbtnType.gridx = gridx++;
 				gbc_rdbtnType.gridy = 0;
-				this.add(rdbtnType, gbc_rdbtnType);
-				rdbtngrpType.add(rdbtnType);
+				this.add(rdbtnType[i], gbc_rdbtnType);
+				rdbtngrpType.add(rdbtnType[i]);
 			}
 
 			JButton btnRemove = new JButton("");
@@ -209,30 +263,61 @@ public class FileFilterStackPanel extends JPanel
 			this.add(btnRemove);
 
 			// Avoid growing vertically
-			Dimension preferedSize = this.getPreferredSize();
-			preferedSize.width = this.getMaximumSize().width;
-			this.setMaximumSize(preferedSize);
+			Dimension preferredSize = this.getPreferredSize();
+			preferredSize.width = this.getMaximumSize().width;
+			this.setMaximumSize(preferredSize);
+		}
+
+		public Filter(FileFilter ff) {
+			this();
+			this.setPattern(ff.getPattern());
+			this.setMatches(ff.getMatches());
+			this.setType(ff.getType());
+		}
+
+		public void setPattern(String pattern) {
+			this.txtPattern.setText(pattern);
+		}
+
+		public void setMatches(String matches) {
+			for (int i = 0; i < FileFilter.MATCH_CHOICES.length; i++) {
+				if (FileFilter.MATCH_CHOICES[i].equals(matches)) {
+					this.cbboxMatches.setSelectedIndex(i);
+					break;
+				}
+			}
+		}
+
+		public void setType(String type) {
+			for (int i = 0; i < FileFilter.TYPE_CHOICES.length; i++) {
+				if (FileFilter.TYPE_CHOICES[i].equals(type)) {
+					this.rdbtngrpType.setSelected(rdbtnType[i].getModel(), true);
+					break;
+				}
+			}
 		}
 
 		public FileFilter getFileFilter() {
 			if (this.txtPattern.getText().isEmpty()) {
 				return null;
 			}
-			return new FileFilter(this.txtPattern.getText(), (String) this.cbboxMatches.getSelectedItem(),
+			FileFilter ff = new FileFilter(this.txtPattern.getText(), (String) this.cbboxMatches.getSelectedItem(),
 					this.rdbtngrpType.getSelection().getActionCommand());
+			ff.prepareFilter();
+			return ff;
 		}
 	}
 
 	@SuppressWarnings("serial")
-	private class AddFilterAction extends AbstractAction
-	{
+	private class AddFilterAction extends AbstractAction {
 		public AddFilterAction() {
 			putValue(NAME, "");
 			putValue(SHORT_DESCRIPTION, "Add new filter");
 		}
 
 		public void actionPerformed(ActionEvent e) {
-			FileFilterStackPanel.this.addEmptyFilter();
+			FileFilterStackPanel p = FileFilterStackPanel.this;
+			p.addMenu.show(FileFilterStackPanel.this, p.btnAdd.getWidth(), p.btnAdd.getHeight() / 2);
 		}
 	}
 }

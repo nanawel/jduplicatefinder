@@ -1,25 +1,17 @@
 package nnwl.jduplicatefinder.ui;
 
-import java.awt.GridBagConstraints;
-import java.awt.GridBagLayout;
-import java.awt.Insets;
-
-import javax.swing.Icon;
-import javax.swing.JCheckBox;
-import javax.swing.JLabel;
-import javax.swing.JPanel;
-import javax.swing.SwingConstants;
+import javax.swing.*;
+import java.awt.*;
 
 /**
  * JDuplicateFinder
- *  
+ *
  * @author Anael Ollier <nanawel NOSPAM [at] gmail [dot] com>
  * @license GPLv3 - See LICENSE
  */
-public class ComparatorTab extends JPanel
-{
+public class ComparatorTab extends JPanel {
 	private static final long serialVersionUID = -7370204583763588865L;
-	
+
 	private JCheckBox chckbxTitle;
 
 	/**
@@ -32,7 +24,7 @@ public class ComparatorTab extends JPanel
 		gridBagLayout.columnWeights = new double[]{0.0, 1.0, Double.MIN_VALUE};
 		gridBagLayout.rowWeights = new double[]{0.0, Double.MIN_VALUE};
 		setLayout(gridBagLayout);
-		
+
 		chckbxTitle = new JCheckBox("");
 		GridBagConstraints gbc_chckbxTitle = new GridBagConstraints();
 		gbc_chckbxTitle.insets = new Insets(0, 0, 0, 5);
@@ -41,7 +33,7 @@ public class ComparatorTab extends JPanel
 		gbc_chckbxTitle.gridx = 0;
 		gbc_chckbxTitle.gridy = 0;
 		add(chckbxTitle, gbc_chckbxTitle);
-		
+
 		JLabel lblTitle = new JLabel(label, icon, SwingConstants.LEFT);
 		GridBagConstraints gbc_lblTitle = new GridBagConstraints();
 		gbc_lblTitle.fill = GridBagConstraints.HORIZONTAL;
@@ -53,7 +45,7 @@ public class ComparatorTab extends JPanel
 	public boolean isChecked() {
 		return this.chckbxTitle.isSelected();
 	}
-	
+
 	public void check(boolean c) {
 		this.chckbxTitle.setSelected(c);
 	}

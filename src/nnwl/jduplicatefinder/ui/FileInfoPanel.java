@@ -1,10 +1,11 @@
 package nnwl.jduplicatefinder.ui;
 
-import java.awt.Desktop;
-import java.awt.Font;
-import java.awt.GridBagConstraints;
-import java.awt.GridBagLayout;
-import java.awt.Insets;
+import nnwl.jduplicatefinder.util.Files;
+import org.apache.log4j.Logger;
+
+import javax.swing.*;
+import javax.swing.border.EmptyBorder;
+import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.io.File;
 import java.io.IOException;
@@ -14,30 +15,13 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
-import javax.swing.AbstractAction;
-import javax.swing.Action;
-import javax.swing.ImageIcon;
-import javax.swing.JButton;
-import javax.swing.JLabel;
-import javax.swing.JOptionPane;
-import javax.swing.JPanel;
-import javax.swing.JSeparator;
-import javax.swing.JTextField;
-import javax.swing.SwingConstants;
-import javax.swing.border.EmptyBorder;
-
-import nnwl.jduplicatefinder.util.Files;
-
-import org.apache.log4j.Logger;
-
 /**
  * JDuplicateFinder
- *  
+ *
  * @author Anael Ollier <nanawel NOSPAM [at] gmail [dot] com>
  * @license GPLv3 - See LICENSE
  */
-public class FileInfoPanel extends JPanel
-{
+public class FileInfoPanel extends JPanel {
 	private static final long serialVersionUID = -1297040469251939023L;
 
 	private static final Logger logger = Logger.getLogger(FileInfoPanel.class);
@@ -65,10 +49,10 @@ public class FileInfoPanel extends JPanel
 	public FileInfoPanel() {
 		setBorder(new EmptyBorder(5, 5, 5, 5));
 		GridBagLayout gridBagLayout = new GridBagLayout();
-		gridBagLayout.columnWidths = new int[] { 0, 0, 0, 0, 0, 0, 0 };
-		gridBagLayout.rowHeights = new int[] { 0, 0, 0, 0, 0, 0, 0, 0 };
-		gridBagLayout.columnWeights = new double[] { 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, Double.MIN_VALUE };
-		gridBagLayout.rowWeights = new double[] { 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, Double.MIN_VALUE };
+		gridBagLayout.columnWidths = new int[]{0, 0, 0, 0, 0, 0, 0};
+		gridBagLayout.rowHeights = new int[]{0, 0, 0, 0, 0, 0, 0, 0};
+		gridBagLayout.columnWeights = new double[]{0.0, 0.0, 1.0, 0.0, 0.0, 0.0, Double.MIN_VALUE};
+		gridBagLayout.rowWeights = new double[]{0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, Double.MIN_VALUE};
 		setLayout(gridBagLayout);
 
 		JLabel lblFileInfo = new JLabel("File info");
@@ -210,7 +194,7 @@ public class FileInfoPanel extends JPanel
 		gbc_btnOpenInBrowser.gridx = 3;
 		gbc_btnOpenInBrowser.gridy = 6;
 		add(btnBrowseTo, gbc_btnOpenInBrowser);
-		
+
 		this.clear();
 	}
 
@@ -222,8 +206,7 @@ public class FileInfoPanel extends JPanel
 		this.lblFilesizevalue.setText(Files.humanReadableByteCount(f.length(), true) + " (" + f.length() + " bytes)");
 		try {
 			this.lblMimetypevalue.setText(java.nio.file.Files.probeContentType(f.toPath()));
-		}
-		catch (IOException e) {
+		} catch (IOException e) {
 			logger.error(e.getMessage(), e);
 			this.lblMimetypevalue.setText("<Error>");
 		}
@@ -237,8 +220,7 @@ public class FileInfoPanel extends JPanel
 
 			this.lblCreatedvalue.setText(dateFormat.format(new Date(creationDate.toMillis())));
 			this.lblModifiedvalue.setText(dateFormat.format(new Date(modificationDate.toMillis())));
-		}
-		catch (IOException e) {
+		} catch (IOException e) {
 			logger.error(e.getMessage(), e);
 
 			this.lblCreatedvalue.setText("<Error>");
@@ -259,26 +241,24 @@ public class FileInfoPanel extends JPanel
 		this.btnBrowseTo.setEnabled(false);
 	}
 
-	private class SwingAction extends AbstractAction
-	{
+	private class SwingAction extends AbstractAction {
 
 		private static final long serialVersionUID = -8786434483497463261L;
 
 		public SwingAction() {
 			putValue(NAME, "Browse to...");
-			putValue(SHORT_DESCRIPTION, "Open parent folder with system's file browser");
+			putValue(SHORT_DESCRIPTION, "Open parent folder with system's path browser");
 		}
 
 		public void actionPerformed(ActionEvent ev) {
 			try {
 				File target = FileInfoPanel.this.currentFile.isDirectory() ? FileInfoPanel.this.currentFile : FileInfoPanel.this.currentFile.getParentFile();
 				Desktop.getDesktop().browse(target.toURI());
-			}
-			catch (Exception e) {
+			} catch (Exception e) {
 				logger.error(e.getMessage(), e);
 				JOptionPane.showMessageDialog(
 						FileInfoPanel.this,
-						"Cannot open file browser.",
+						"Cannot open path browser.",
 						"Error",
 						JOptionPane.ERROR_MESSAGE,
 						new ImageIcon(FileInfoPanel.class

@@ -1,19 +1,18 @@
 package nnwl.jduplicatefinder.ui;
 
-import javax.swing.JLabel;
+import javax.swing.*;
 
 /**
  * JDuplicateFinder
- *  
+ *
  * @author Anael Ollier <nanawel NOSPAM [at] gmail [dot] com>
  * @license GPLv3 - See LICENSE
  */
-public class MemoryWatcher implements Runnable
-{
+public class MemoryWatcher implements Runnable {
 	private JLabel label;
-	
+
 	private int period = 1000;
-	
+
 	private int threshold = 75;
 
 	public MemoryWatcher(JLabel label) {
@@ -24,10 +23,10 @@ public class MemoryWatcher implements Runnable
 	public void run() {
 		Runtime runtime = Runtime.getRuntime();
 		int mb = 1024 * 1024;
-		while(true) {
+		while (true) {
 			long max = runtime.maxMemory() / mb;
 			long used = (runtime.totalMemory() - runtime.freeMemory()) / mb;
-			
+
 			if (this.label != null) {
 				String status = used + "/" + max + "MB";
 				if (used >= (max * this.threshold) / 100) {
@@ -35,11 +34,10 @@ public class MemoryWatcher implements Runnable
 				}
 				this.label.setText("<html>Mem: " + status + "</html>");
 			}
-			
+
 			try {
 				Thread.sleep(this.period);
-			}
-			catch (InterruptedException e) {
+			} catch (InterruptedException e) {
 				return;
 			}
 		}

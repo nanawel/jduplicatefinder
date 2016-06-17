@@ -1,35 +1,22 @@
 package nnwl.jduplicatefinder.ui.comparators.config;
 
-import java.awt.Color;
-import java.awt.Font;
-import java.awt.GridBagConstraints;
-import java.awt.GridBagLayout;
-import java.awt.Insets;
+import nnwl.jduplicatefinder.engine.comparators.AbstractDuplicateComparator;
+
+import javax.swing.*;
+import javax.swing.border.EmptyBorder;
+import java.awt.*;
 import java.util.HashMap;
 import java.util.Map;
 
-import javax.swing.DefaultComboBoxModel;
-import javax.swing.Icon;
-import javax.swing.ImageIcon;
-import javax.swing.JComboBox;
-import javax.swing.JLabel;
-import javax.swing.JPanel;
-import javax.swing.JTextField;
-import javax.swing.SwingConstants;
-
-import nnwl.jduplicatefinder.engine.comparators.AbstractDuplicateComparator;
-import javax.swing.border.EmptyBorder;
-
 /**
  * JDuplicateFinder
- *  
+ *
  * @author Anael Ollier <nanawel NOSPAM [at] gmail [dot] com>
  * @license GPLv3 - See LICENSE
  */
-public class Digest extends JPanel implements ComparatorConfigPanel
-{
+public class Digest extends JPanel implements ComparatorConfigPanel {
 	private static final long serialVersionUID = 272080702154953921L;
-	
+
 	public static final String TAB_TITLE = "Digest Comparator";
 
 	private JComboBox<String> cbboxDigestAlgorithm;
@@ -44,7 +31,7 @@ public class Digest extends JPanel implements ComparatorConfigPanel
 		setBorder(new EmptyBorder(5, 5, 5, 5));
 		this.initialize();
 	}
-	
+
 	public void initialize() {
 		GridBagLayout gbl_panel_2 = new GridBagLayout();
 		gbl_panel_2.columnWidths = new int[]{120, 0, 20, 20, 0, 156, 0};
@@ -52,7 +39,7 @@ public class Digest extends JPanel implements ComparatorConfigPanel
 		gbl_panel_2.columnWeights = new double[]{0.0, 0.0, 0.0, 0.0, 0.0, 0.0, Double.MIN_VALUE};
 		gbl_panel_2.rowWeights = new double[]{0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, Double.MIN_VALUE};
 		this.setLayout(gbl_panel_2);
-		
+
 		lblComparatorWeight = new JLabel("Comparator weight");
 		lblComparatorWeight.setVerticalAlignment(SwingConstants.BOTTOM);
 		GridBagConstraints gbc_lblComparatorWeight = new GridBagConstraints();
@@ -62,7 +49,7 @@ public class Digest extends JPanel implements ComparatorConfigPanel
 		gbc_lblComparatorWeight.gridy = 0;
 		add(lblComparatorWeight, gbc_lblComparatorWeight);
 		lblComparatorWeight.setLabelFor(txtComparatorWeight);
-		
+
 		txtComparatorWeight = new JTextField();
 		txtComparatorWeight.setText("5");
 		txtComparatorWeight.setColumns(4);
@@ -72,7 +59,7 @@ public class Digest extends JPanel implements ComparatorConfigPanel
 		gbc_txtComparatorWeight.gridx = 1;
 		gbc_txtComparatorWeight.gridy = 0;
 		add(txtComparatorWeight, gbc_txtComparatorWeight);
-		
+
 		lblChunkSize = new JLabel("Chunk size");
 		GridBagConstraints gbc_lblChunkSize = new GridBagConstraints();
 		gbc_lblChunkSize.anchor = GridBagConstraints.WEST;
@@ -81,7 +68,7 @@ public class Digest extends JPanel implements ComparatorConfigPanel
 		gbc_lblChunkSize.gridy = 0;
 		add(lblChunkSize, gbc_lblChunkSize);
 		lblChunkSize.setLabelFor(txtChunksize);
-		
+
 		txtChunksize = new JTextField();
 		txtChunksize.setText("512");
 		GridBagConstraints gbc_txtChunksize = new GridBagConstraints();
@@ -91,9 +78,9 @@ public class Digest extends JPanel implements ComparatorConfigPanel
 		gbc_txtChunksize.gridy = 0;
 		add(txtChunksize, gbc_txtChunksize);
 		txtChunksize.setColumns(10);
-		
+
 		cbboxChunksizeUnit = new JComboBox<String>();
-		cbboxChunksizeUnit.setModel(new DefaultComboBoxModel<String>(new String[] {"bytes", "kibibytes", "mebibytes"}));
+		cbboxChunksizeUnit.setModel(new DefaultComboBoxModel<String>(new String[]{"bytes", "kibibytes", "mebibytes"}));
 		cbboxChunksizeUnit.setSelectedIndex(1);
 		GridBagConstraints gbc_cbboxChunksizeUnit = new GridBagConstraints();
 		gbc_cbboxChunksizeUnit.anchor = GridBagConstraints.WEST;
@@ -101,7 +88,7 @@ public class Digest extends JPanel implements ComparatorConfigPanel
 		gbc_cbboxChunksizeUnit.gridx = 5;
 		gbc_cbboxChunksizeUnit.gridy = 0;
 		add(cbboxChunksizeUnit, gbc_cbboxChunksizeUnit);
-		
+
 		JLabel lblDigestAlgorithm = new JLabel("Digest algorithm");
 		GridBagConstraints gbc_lblDigestAlgorithm = new GridBagConstraints();
 		gbc_lblDigestAlgorithm.anchor = GridBagConstraints.EAST;
@@ -109,7 +96,7 @@ public class Digest extends JPanel implements ComparatorConfigPanel
 		gbc_lblDigestAlgorithm.gridx = 0;
 		gbc_lblDigestAlgorithm.gridy = 1;
 		this.add(lblDigestAlgorithm, gbc_lblDigestAlgorithm);
-		
+
 		cbboxDigestAlgorithm = new JComboBox<String>();
 		cbboxDigestAlgorithm.setModel(new DefaultComboBoxModel<String>(nnwl.jduplicatefinder.engine.comparators.Digest.getAvailableAlgorithms()));
 		cbboxDigestAlgorithm.setSelectedIndex(1);
@@ -119,8 +106,8 @@ public class Digest extends JPanel implements ComparatorConfigPanel
 		gbc_cbboxDigestAlgorithm.gridx = 1;
 		gbc_cbboxDigestAlgorithm.gridy = 1;
 		add(cbboxDigestAlgorithm, gbc_cbboxDigestAlgorithm);
-		
-		lblOnlyAChunk = new JLabel("Only a chunk of this size from the beginning of the file will be used in comparison");
+
+		lblOnlyAChunk = new JLabel("Only a chunk of this size from the beginning of the path will be used in comparison");
 		lblOnlyAChunk.setHorizontalAlignment(SwingConstants.CENTER);
 		lblOnlyAChunk.setForeground(Color.GRAY);
 		lblOnlyAChunk.setFont(new Font("Tahoma", Font.ITALIC, 11));
@@ -136,25 +123,25 @@ public class Digest extends JPanel implements ComparatorConfigPanel
 	@Override
 	public Map<String, Object> getComparatorParameters() throws Exception {
 		HashMap<String, Object> parameters = new HashMap<String, Object>();
-		
+
 		parameters.put("digest.algorithm", this.cbboxDigestAlgorithm.getSelectedItem());
 		switch (this.cbboxChunksizeUnit.getSelectedIndex()) {
 			// bytes
 			case 0:
-				parameters.put("digest.chunksize", this.txtChunksize.getText());
+				parameters.put("digest.chunkSize", this.txtChunksize.getText());
 				break;
-				
+
 			// kibibytes
 			case 1:
-				parameters.put("digest.chunksize", Long.valueOf(this.txtChunksize.getText()) * 1024);
+				parameters.put("digest.chunkSize", Long.valueOf(this.txtChunksize.getText()) * 1024);
 				break;
-				
+
 			// mebibytes
 			case 2:
-				parameters.put("digest.chunksize", Long.valueOf(this.txtChunksize.getText()) * 1024 * 1024);
+				parameters.put("digest.chunkSize", Long.valueOf(this.txtChunksize.getText()) * 1024 * 1024);
 				break;
 		}
-		
+
 		return parameters;
 	}
 
@@ -177,13 +164,13 @@ public class Digest extends JPanel implements ComparatorConfigPanel
 	public AbstractDuplicateComparator getComparatorInstance() {
 		return new nnwl.jduplicatefinder.engine.comparators.Digest();
 	}
-	
+
 	@Override
 	public AbstractDuplicateComparator getConfiguredComparatorInstance() throws Exception {
 		AbstractDuplicateComparator f = this.getComparatorInstance();
 		f.setWeight(this.getComparatorWeight());
 		f.configure(this.getComparatorParameters());
-		
+
 		return f;
 	}
 }

@@ -1,123 +1,89 @@
 package nnwl.jduplicatefinder.ui;
 
-import java.awt.BorderLayout;
-import java.awt.Color;
-import java.awt.Component;
-import java.awt.Cursor;
-import java.awt.Desktop;
-import java.awt.Dimension;
-import java.awt.EventQueue;
-import java.awt.GridBagConstraints;
-import java.awt.GridBagLayout;
-import java.awt.Insets;
-import java.awt.Rectangle;
-import java.awt.Toolkit;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
-import java.io.File;
-import java.net.URI;
-import java.nio.file.Path;
-import java.text.DecimalFormat;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
+import nnwl.jduplicatefinder.engine.*;
+import nnwl.jduplicatefinder.engine.comparators.AbstractDuplicateComparator;
+import nnwl.jduplicatefinder.engine.event.RunnerAdapter;
+import nnwl.jduplicatefinder.engine.event.RunnerEvent;
+import nnwl.jduplicatefinder.engine.event.RunnerExceptionEvent;
+import nnwl.jduplicatefinder.ui.comparators.config.ComparatorConfigPanel;
+import nnwl.jduplicatefinder.ui.diffviewer.FileDiffPanel;
+import nnwl.jduplicatefinder.ui.tree.ContextMenuHelper;
+import nnwl.jduplicatefinder.ui.tree.ResultsTree;
+import nnwl.jduplicatefinder.ui.tree.ResultsTree.ExpanderEvent;
+import nnwl.jduplicatefinder.ui.tree.event.ResultsTreeKeyListener;
+import nnwl.jduplicatefinder.ui.tree.event.ResultsTreeMouseListener;
+import nnwl.jduplicatefinder.ui.tree.renderer.ResultsTreeCellRenderer;
+import nnwl.jduplicatefinder.util.Paths;
+import nnwl.rewrite.javax.swing.EnhancedProgressMonitor;
+import org.apache.commons.configuration.HierarchicalConfiguration;
+import org.apache.commons.configuration.XMLConfiguration;
+import org.apache.log4j.Logger;
+import org.apache.log4j.PropertyConfigurator;
 
-import javax.swing.AbstractAction;
-import javax.swing.Action;
-import javax.swing.Box;
-import javax.swing.ImageIcon;
-import javax.swing.JButton;
-import javax.swing.JCheckBox;
-import javax.swing.JFileChooser;
-import javax.swing.JFrame;
-import javax.swing.JLabel;
-import javax.swing.JMenuItem;
-import javax.swing.JOptionPane;
-import javax.swing.JPanel;
-import javax.swing.JPopupMenu;
-import javax.swing.JScrollPane;
-import javax.swing.JSeparator;
-import javax.swing.JSplitPane;
-import javax.swing.JTabbedPane;
-import javax.swing.JToolBar;
-import javax.swing.SwingConstants;
-import javax.swing.UIManager;
+import javax.swing.*;
+import javax.swing.border.BevelBorder;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.EtchedBorder;
 import javax.swing.event.TreeSelectionEvent;
 import javax.swing.event.TreeSelectionListener;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.TreePath;
-
-import nnwl.jduplicatefinder.engine.FileResult;
-import nnwl.jduplicatefinder.engine.ResultsSet;
-import nnwl.jduplicatefinder.engine.Runner;
-import nnwl.jduplicatefinder.engine.SimilarityResult;
-import nnwl.jduplicatefinder.engine.comparators.AbstractDuplicateComparator;
-import nnwl.jduplicatefinder.engine.event.RunnerAdapter;
-import nnwl.jduplicatefinder.engine.event.RunnerEvent;
-import nnwl.jduplicatefinder.engine.event.RunnerExceptionEvent;
-import nnwl.jduplicatefinder.ui.comparators.config.ComparatorConfigPanel;
-import nnwl.jduplicatefinder.ui.tree.ResultsTree;
-import nnwl.jduplicatefinder.ui.tree.ResultsTree.ExpanderEvent;
-import nnwl.jduplicatefinder.ui.tree.renderer.ResultsTreeCellRenderer;
-import nnwl.jduplicatefinder.util.Paths;
-import nnwl.rewrite.javax.swing.EnhancedProgressMonitor;
-
-import org.apache.log4j.Logger;
-import org.apache.log4j.PropertyConfigurator;
+import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.io.File;
+import java.net.URI;
+import java.net.URL;
+import java.nio.file.FileSystems;
+import java.nio.file.Path;
+import java.text.DecimalFormat;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * JDuplicateFinder
- *  
+ *
  * @author Anael Ollier <nanawel NOSPAM [at] gmail [dot] com>
  * @license GPLv3 - See LICENSE
  */
-public class App
-{
+public class App {
 	public static String APP_NAME = "JDuplicateFinder";
 
-	public static String APP_VERSION = "1.0";
+	public static String APP_VERSION = "1.3";
 
 	private static final Logger logger = Logger.getLogger(App.class);
-
-	private File defaultDirectory = null;
 
 	private DecimalFormat timeDecimalFormatter = new DecimalFormat("0.000");
 
 	private JFrame frmMain;
 
-	private FileStackPanel fileStackPane;
-
 	private JLabel lblStatus;
 
 	private final Action actionRun = new RunAction();
-
 	private final Action actionClear = new ClearAction();
 
 	private ResultsTree treeLeft;
-
+	protected JScrollPane treeScrollPaneLeft;
 	private ResultsTree treeRight;
-
-	protected ResultsTreeModel treeModel;
+	protected JScrollPane treeScrollPaneRight;
+	protected ResultsTreeModel treeModel = new ResultsTreeModel();
 
 	private Thread runnerThread;
 
-	private JCheckBox chkboxRecurseSubdirectories;
-
 	private JTabbedPane configTabbedPane;
-
-	protected JScrollPane scrollPaneLeft;
-
-	protected JScrollPane scrollPaneRight;
+	private FileStackPanel fileStackPane;
+	private JCheckBox chkboxRecurseSubdirectories;
+	private FileFilterStackPanel fileFiltersPanel;
 
 	protected FileInfoPanel fileInfoPanel;
 
-	protected int firstComparatorTabIndex;
+	private FileDiffPanel diffViewerPane;
 
-	private FileFilterStackPanel fileFiltersPanel;
+	private Path defaultDirectory = null;
+	protected int firstComparatorTabIndex;
 
 	/**
 	 * Launch the application.
@@ -140,6 +106,7 @@ public class App
 						}
 					}
 					app.initialize();
+					app.loadConfiguration();
 
 					if (paths != null) {
 						app.setTargetPaths(paths);
@@ -148,12 +115,48 @@ public class App
 
 					logger.debug("Displaying main window");
 					app.frmMain.setVisible(true);
-				}
-				catch (Exception e) {
+				} catch (Exception e) {
 					e.printStackTrace();
 				}
 			}
 		});
+	}
+
+	protected void loadConfiguration() {
+		try {
+			XMLConfiguration config = new XMLConfiguration();
+			config.setDelimiterParsingDisabled(true);
+			URL configURL = null;
+
+			// Load config path from current folder
+			File configFile = new File("config.xml");
+			if (configFile.exists()) {
+				configURL = configFile.toURI().toURL();
+			}
+
+			// If it failed, fallback to the one embedded in JAR
+			if (configURL == null) {
+				configURL = App.class.getResource("/config.xml");
+			}
+
+			System.out.println("Using config path at: " + configURL);
+			logger.info("Using config path at: " + configURL);
+			config.load(configURL);
+
+			// Predefined path filters
+			List<HierarchicalConfiguration> filterNodes = config.configurationsAt("filters.filter");
+			List<FileFilter> filters = new ArrayList<>();
+			for (HierarchicalConfiguration filterNode : filterNodes) {
+				FileFilter ff = new FileFilter(filterNode.getString("pattern"), filterNode.getString("match"),
+						filterNode.getString("type"));
+				ff.setTitle(filterNode.getString("title"));
+				filters.add(ff);
+			}
+			this.fileFiltersPanel.setPredefinedFilters(filters);
+		} catch (Exception e) {
+			logger.error("Cannot load configuration path", e);
+			e.printStackTrace();
+		}
 	}
 
 	/**
@@ -174,8 +177,10 @@ public class App
 		frmMain.setIconImage(Toolkit.getDefaultToolkit().getImage(App.class.getResource("/icons/app48.png")));
 		frmMain.setTitle(APP_NAME);
 		frmMain.setBounds(100, 100, 784, 505);
-		frmMain.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		frmMain.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
 		frmMain.getContentPane().setLayout(new BorderLayout(0, 0));
+
+		JOptionPane.setRootFrame(frmMain);
 
 		// //////////
 		// TOOLBAR
@@ -191,11 +196,10 @@ public class App
 		btnClearResults.setAction(actionClear);
 		btnClearResults.setIcon(new ImageIcon(App.class.getResource("/icons/edit-clear.png")));
 		toolBar.add(btnClearResults);
-		
+
 		toolBar.add(Box.createHorizontalGlue());
 
-		final JLabel lblAbout = new JLabel("<html>" + APP_NAME + " v" + APP_VERSION
-				+ "<br/>nanawel@gmail.com</html>");
+		final JLabel lblAbout = new JLabel("<html>" + APP_NAME + " v" + APP_VERSION + "<br/>nanawel@gmail.com</html>");
 		lblAbout.setForeground(Color.GRAY);
 		lblAbout.setPreferredSize(lblAbout.getPreferredSize());
 		lblAbout.setMaximumSize(lblAbout.getPreferredSize());
@@ -203,9 +207,9 @@ public class App
 			@Override
 			public void mouseClicked(MouseEvent e) {
 				try {
-					Desktop.getDesktop().browse(new URI("http://lanterne-rouge.over-blog.org/"));
+					Desktop.getDesktop().browse(new URI("http://www.lanterne-rouge.info/"));
+				} catch (Exception e1) {
 				}
-				catch (Exception e1) {}
 			}
 
 			@Override
@@ -213,7 +217,7 @@ public class App
 				lblAbout.setForeground(Color.BLUE);
 				lblAbout.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 			}
-			
+
 			@Override
 			public void mouseExited(MouseEvent e) {
 				lblAbout.setForeground(Color.GRAY);
@@ -222,7 +226,7 @@ public class App
 		});
 		lblAbout.setToolTipText("Go to author's blog");
 		toolBar.add(lblAbout);
-		
+
 		// //////////
 		// MAIN PANEL
 		JPanel panel = new JPanel();
@@ -235,14 +239,14 @@ public class App
 		statusBar.setBorder(new EtchedBorder(EtchedBorder.RAISED, null, null));
 		panel.add(statusBar, BorderLayout.SOUTH);
 		GridBagLayout gbl_statusBar = new GridBagLayout();
-		gbl_statusBar.columnWidths = new int[] { 325, 0, 0, 0 };
-		gbl_statusBar.rowHeights = new int[] { 14, 0 };
-		gbl_statusBar.columnWeights = new double[] { 1.0, 0.0, 0.0, Double.MIN_VALUE };
-		gbl_statusBar.rowWeights = new double[] { 0.0, Double.MIN_VALUE };
+		gbl_statusBar.columnWidths = new int[]{325, 0, 0};
+		gbl_statusBar.rowHeights = new int[]{14, 0};
+		gbl_statusBar.columnWeights = new double[]{1.0, 0.0, Double.MIN_VALUE};
+		gbl_statusBar.rowWeights = new double[]{0.0, Double.MIN_VALUE};
 		statusBar.setLayout(gbl_statusBar);
 
 		lblStatus = new JLabel(APP_NAME + " started");
-		lblStatus.setBorder(new EmptyBorder(0, 4, 0, 4));
+		lblStatus.setBorder(new BevelBorder(BevelBorder.LOWERED, null, null, null, null));
 		GridBagConstraints gbc_lblStatus = new GridBagConstraints();
 		gbc_lblStatus.fill = GridBagConstraints.HORIZONTAL;
 		gbc_lblStatus.insets = new Insets(0, 0, 0, 5);
@@ -251,45 +255,43 @@ public class App
 		gbc_lblStatus.gridy = 0;
 		statusBar.add(lblStatus, gbc_lblStatus);
 
-		JSeparator sepStatusBar = new JSeparator();
-		sepStatusBar.setForeground(Color.GRAY);
-		sepStatusBar.setOrientation(SwingConstants.VERTICAL);
-		sepStatusBar.setPreferredSize(new Dimension(1, 10));
-		GridBagConstraints gbc_sepStatusBar = new GridBagConstraints();
-		gbc_sepStatusBar.insets = new Insets(0, 4, 0, 5);
-		gbc_sepStatusBar.gridx = 1;
-		gbc_sepStatusBar.gridy = 0;
-		statusBar.add(sepStatusBar, gbc_sepStatusBar);
-
 		JLabel lblMemoryStatus = new JLabel("Memory Status");
-		lblMemoryStatus.setBorder(new EmptyBorder(0, 4, 0, 4));
+		lblMemoryStatus.setBorder(new BevelBorder(BevelBorder.LOWERED, null, null, null, null));
 		GridBagConstraints gbc_lblMemoryStatus = new GridBagConstraints();
-		gbc_lblMemoryStatus.gridx = 2;
+		gbc_lblMemoryStatus.gridx = 1;
 		gbc_lblMemoryStatus.gridy = 0;
 		statusBar.add(lblMemoryStatus, gbc_lblMemoryStatus);
 
 		this.startMemoryWatcher(lblMemoryStatus);
 
 		// //////////
-		// TREES & FILE INFO
-		treeModel = new ResultsTreeModel();
-
+		// LEFT PANEL (TREE)
 		treeLeft = this.createResultsTree(true);
-		scrollPaneLeft = new JScrollPane(treeLeft);
+		treeScrollPaneLeft = new JScrollPane(treeLeft);
 
-		treeRight = this.createResultsTree(false);
-		scrollPaneRight = new JScrollPane(treeRight);
-
+		// //////////
+		// RIGHT PANEL (TREE, DIFFVIEWER, FILE INFO)
 		JPanel rightPane = new JPanel();
 		BorderLayout bl_rightPane = new BorderLayout();
 		rightPane.setLayout(bl_rightPane);
 
-		rightPane.add(scrollPaneRight, BorderLayout.CENTER);
+		treeRight = this.createResultsTree(false);
+		treeScrollPaneRight = new JScrollPane(treeRight);
 
-		JSplitPane resultsSplitpane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, scrollPaneLeft, rightPane);
+		diffViewerPane = new FileDiffPanel();
+
+		JTabbedPane rightTabbedPane = new JTabbedPane(JTabbedPane.TOP);
+		rightPane.add(rightTabbedPane, BorderLayout.CENTER);
+		rightTabbedPane.addTab("Results", new ImageIcon(App.class.getResource("/icons/i16x16/folder.png")),
+				treeScrollPaneRight);
+		rightTabbedPane.addTab("Diff", new ImageIcon(App.class.getResource("/icons/i16x16/edit-copy.png")),
+				diffViewerPane);
 
 		fileInfoPanel = new FileInfoPanel();
 		rightPane.add(fileInfoPanel, BorderLayout.SOUTH);
+
+		// SPLITPANE
+		JSplitPane resultsSplitpane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, treeScrollPaneLeft, rightPane);
 		resultsSplitpane.setResizeWeight(0.5);
 
 		// //////////
@@ -302,14 +304,15 @@ public class App
 				.addTab("Folders", new ImageIcon(App.class.getResource("/icons/i16x16/folder.png")), tabFolders);
 		configTabbedPane.setEnabledAt(0, true);
 		GridBagLayout gbl_tabFolders = new GridBagLayout();
-		gbl_tabFolders.columnWidths = new int[] { 0, 4, 0, 0 };
-		gbl_tabFolders.rowHeights = new int[] { 80, 0 };
-		gbl_tabFolders.columnWeights = new double[] { 0.0, 0.0, 1.0, Double.MIN_VALUE };
-		gbl_tabFolders.rowWeights = new double[] { 1.0, 0.0 };
+		gbl_tabFolders.columnWidths = new int[]{0, 4, 0, 0};
+		gbl_tabFolders.rowHeights = new int[]{80, 0};
+		gbl_tabFolders.columnWeights = new double[]{0.0, 0.0, 1.0, Double.MIN_VALUE};
+		gbl_tabFolders.rowWeights = new double[]{1.0, 0.0};
 		tabFolders.setLayout(gbl_tabFolders);
 
 		JLabel lblAnalyzeFolder = new JLabel("Analyze folders:");
 		GridBagConstraints gbc_lblAnalyzeFolder = new GridBagConstraints();
+		gbc_lblAnalyzeFolder.insets = new Insets(10, 0, 0, 0);
 		gbc_lblAnalyzeFolder.anchor = GridBagConstraints.NORTHEAST;
 		gbc_lblAnalyzeFolder.gridx = 0;
 		gbc_lblAnalyzeFolder.gridy = 0;
@@ -366,39 +369,51 @@ public class App
 						(Component) comparatorConfigPanel, null, i + firstComparatorTabIndex);
 				configTabbedPane.setTabComponentAt(i + firstComparatorTabIndex,
 						new ComparatorTab(comparatorConfigPanel.getTitle(), comparatorConfigPanel.getIcon()));
-			}
-			catch (Exception e) {
+			} catch (Exception e) {
 				logger.error("Cannot add comparator config panel: " + comparatorConfigPanelClasses[i], e);
 				e.printStackTrace();
 			}
 		}
+
+		this.installKeybindings();
+	}
+
+	private void installKeybindings() {
+		KeyStroke f5 = KeyStroke.getKeyStroke("F5");
+		this.frmMain.getRootPane().getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(f5, "Run");
+		this.frmMain.getRootPane().getActionMap().put("Run", this.actionRun);
+
+		KeyStroke f8 = KeyStroke.getKeyStroke("F8");
+		this.frmMain.getRootPane().getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(f8, "ClearResults");
+		this.frmMain.getRootPane().getActionMap().put("ClearResults", this.actionClear);
 	}
 
 	protected ResultsTree createResultsTree(boolean isLeft) {
 		ResultsTree tree = new ResultsTree();
 		tree.setBorder(new EmptyBorder(2, 2, 2, 2));
 		tree.setModel(treeModel);
+		tree.setContextMenuHelper(new ContextMenuHelper(tree));
 		tree.setCellRenderer(new ResultsTreeCellRenderer());
-		tree.addMouseListener(new ResultsTreeMouseListener());
+		tree.addMouseListener(new ResultsTreeMouseListener(tree));
 		// if (isLeft) {
 		tree.addTreeSelectionListener(new ResultsTreeSelectionListener());
+		tree.addKeyListener(new ResultsTreeKeyListener(tree));
 		// }
 		return tree;
 	}
 
 	@SuppressWarnings("rawtypes")
 	public static Class[] getComparatorsUiConfig() {
-		return new Class[] {
+		return new Class[]{
 				nnwl.jduplicatefinder.ui.comparators.config.Filesize.class,
 				nnwl.jduplicatefinder.ui.comparators.config.Digest.class,
-				nnwl.jduplicatefinder.ui.comparators.config.DateTime.class };
+				nnwl.jduplicatefinder.ui.comparators.config.DateTime.class};
 	}
 
 	public void setDefaultFolderPath(String path) {
 		try {
-			this.defaultDirectory = new File(path);
-		}
-		catch (Exception e) {
+			this.defaultDirectory = FileSystems.getDefault().getPath(path);
+		} catch (Exception e) {
 			/* just ignore */
 		}
 	}
@@ -407,33 +422,35 @@ public class App
 		this.fileStackPane.clearPaths();
 		for (int i = 0; i < paths.length; i++) {
 			if (paths[i].isDirectory()) {
-				this.fileStackPane.addPath(paths[i]);
+				this.fileStackPane.addPath(paths[i].toPath());
 			}
 		}
 	}
 
-	public File[] getTargetPaths() {
-		return fileStackPane.getFiles();
+	public Path[] getTargetPaths() {
+		return fileStackPane.getPaths();
 	}
 
 	public void run() throws Exception {
 		// Clean memory a little
 		this.clearResults();
 
-		ArrayList<File> folders = new ArrayList<File>();
+		ArrayList<Path> folders = new ArrayList<Path>();
 
-		for (File f : this.getTargetPaths()) {
+		for (Path p : this.getTargetPaths()) {
+			File f = p.toFile();
 			if (!f.isDirectory() || !f.canRead()) {
-				JOptionPane.showMessageDialog(this.frmMain, "Invalid path:<br/>" + f.getAbsolutePath()
-						+ "<br/>is not a directory or is not readable", "Invalid path", JOptionPane.ERROR_MESSAGE,
+				JOptionPane.showMessageDialog(null, "<html>Invalid path: " + f.getAbsolutePath()
+								+ "<br/>is not a directory or is not readable</html>", "Invalid path",
+						JOptionPane.ERROR_MESSAGE,
 						new ImageIcon(App.class.getResource("/icons/i32x32/dialog-error.png")));
-				this.setStatusMessage("Invalid path: not a directory or not readable");
+				this.setStatusMessage("Invalid path: Not a directory or not readable");
 				return;
 			}
-			folders.add(f);
+			folders.add(p);
 		}
 		if (folders.isEmpty()) {
-			JOptionPane.showMessageDialog(this.frmMain, "Please select a search folder.", "Missing folder",
+			JOptionPane.showMessageDialog(null, "Please select a search folder.", "Missing folder",
 					JOptionPane.INFORMATION_MESSAGE,
 					new ImageIcon(App.class.getResource("/icons/i32x32/dialog-information.png")));
 			return;
@@ -451,7 +468,7 @@ public class App
 		}
 
 		if (comparators.isEmpty()) {
-			JOptionPane.showMessageDialog(this.frmMain, "Please select at least one comparator.", "Missing comparator",
+			JOptionPane.showMessageDialog(null, "Please select at least one comparator.", "Missing comparator",
 					JOptionPane.WARNING_MESSAGE,
 					new ImageIcon(App.class.getResource("/icons/i32x32/dialog-warning.png")));
 			return;
@@ -472,10 +489,11 @@ public class App
 
 	public void clearResults() {
 		this.fileInfoPanel.clear();
+		this.diffViewerPane.clear();
 		this.treeModel.resetResults();
 		this.treeModel.reload();
 		System.gc();
-		
+
 		this.setStatusMessage("Press Run to search again");
 		logger.info("Results cleared");
 	}
@@ -489,48 +507,49 @@ public class App
 		t.start();
 	}
 
-	private class RunAction extends AbstractAction
-	{
+	private class RunAction extends AbstractAction {
 		private static final long serialVersionUID = -1013884528373811083L;
 
 		public RunAction() {
 			putValue(NAME, "Run");
-			putValue(SHORT_DESCRIPTION, "Run duplicate comparators on the selected directory");
+			putValue(SHORT_DESCRIPTION, "Run duplicate comparators on the selected directory (F5)");
 		}
 
 		public void actionPerformed(ActionEvent e) {
 			try {
 				App.this.run();
-			}
-			catch (Exception ex) {
+			} catch (Exception ex) {
 				ex.printStackTrace();
-				JOptionPane.showMessageDialog(App.this.frmMain, ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+				JOptionPane.showMessageDialog(null, ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
 			}
 		}
 	}
 
-	private class ClearAction extends AbstractAction
-	{
-		private static final long serialVersionUID = 1L;
+	private class ClearAction extends AbstractAction {
+		private static final long serialVersionUID = -2612572145453262391L;
 
 		public ClearAction() {
 			putValue(NAME, "Clear results");
-			putValue(SHORT_DESCRIPTION, "Clear all results");
+			putValue(SHORT_DESCRIPTION, "Clear all results (F8)");
 		}
 
 		public void actionPerformed(ActionEvent e) {
-			App.this.clearResults();
+			int choice = JOptionPane.showConfirmDialog(null, "<html>Are you sure you want to clear results?</html>",
+					"Clear results", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE, new ImageIcon(
+							ResultsTreeMouseListener.class.getResource("/icons/i32x32/dialog-warning.png")));
+			if (choice == JOptionPane.YES_OPTION) {
+				App.this.clearResults();
+			}
 		}
 	}
 
-	private class RunnerListener extends RunnerAdapter
-	{
+	private class RunnerListener extends RunnerAdapter {
 		private final Logger logger = Logger.getLogger(RunnerListener.class);
 
 		EnhancedProgressMonitor progressMonitor = null;
 
 		public RunnerListener() {
-			this.progressMonitor = new EnhancedProgressMonitor(App.this.frmMain, "", "Comparing files...", 0, 0);
+			this.progressMonitor = new EnhancedProgressMonitor(null, "", "Comparing files...", 0, 0);
 			this.progressMonitor.setAutoClose(false);
 		}
 
@@ -560,7 +579,7 @@ public class App
 					long drawTreeTimeStart = System.currentTimeMillis();
 
 					// Create an expanded tree in background before displaying it
-					// (avoids flickering + speeds up rendering X2 approx.)
+					// (avoids flickering + speeds up rendering x2 approx.)
 					ResultsTree newLeftTree = createResultsTree(true);
 
 					this.progressMonitor.setIndeterminate(false);
@@ -584,12 +603,11 @@ public class App
 					expanderThread.start();
 					try {
 						expanderThread.join();
-					}
-					catch (InterruptedException e) {
+					} catch (InterruptedException e) {
 						e.printStackTrace();
 					}
 
-					App.this.scrollPaneLeft.setViewportView(newLeftTree);
+					App.this.treeScrollPaneLeft.setViewportView(newLeftTree);
 					App.this.treeLeft = newLeftTree;
 
 					App.this.treeRight.expand(1);
@@ -603,17 +621,16 @@ public class App
 
 					if (results.isEmpty()) {
 						logger.info("No similar files found (" + ev.getRunner().getFiles().size() + " total files)");
-						JOptionPane.showMessageDialog(App.this.frmMain, "No similar files found.", "Scan complete",
+						JOptionPane.showMessageDialog(null, "No similar files found.", "Scan complete",
 								JOptionPane.INFORMATION_MESSAGE);
 						StringBuffer s = new StringBuffer()
 								.append("<html>Finished: <b>No similar files found.</b> in a total of <b>")
 								.append(ev.getRunner().getFiles().size()).append(" files</b> analyzed in ")
 								.append(processTime).append(" seconds</html>");
 						App.this.setStatusMessage(s.toString());
-					}
-					else {
+					} else {
 						StringBuffer s = new StringBuffer().append("<html>Finished: <b>").append(results.size())
-								.append(" positive results</b> found in a total of <b>")
+								.append(" results</b> found in a total of <b>")
 								.append(ev.getRunner().getFiles().size()).append(" files</b> in ").append(processTime)
 								.append(" seconds (+").append(displayTime)
 								.append(" seconds to display the results tree)</html>");
@@ -650,7 +667,7 @@ public class App
 
 		@Override
 		public void comparatorsFilesAnalyzeStarted(RunnerEvent ev) {
-			App.this.setStatusMessage("Running selected comparators...");
+			App.this.setStatusMessage(ev.getTotalFilesCount() + " files found. Running selected comparators...");
 			this.progressMonitor.setIndeterminate(false);
 			this.progressMonitor.setMaximum((int) ev.getTotalFilesCount());
 			this.progressMonitor.setProgress(0);
@@ -693,278 +710,21 @@ public class App
 		}
 
 		@Override
-		public void exceptionCaugth(RunnerExceptionEvent ev) {
+		public void exceptionCaught(RunnerExceptionEvent ev) {
 			this.progressMonitor.close();
-			App.this.setStatusMessage("An error occured.");
+			App.this.setStatusMessage("An error occurred.");
 			String message = ev.getCause().getMessage() != null ? ev.getCause().getMessage() : ev.getCause().getClass()
 					.getName();
-			JOptionPane.showMessageDialog(App.this.frmMain, message, "Error", JOptionPane.ERROR_MESSAGE);
+			JOptionPane.showMessageDialog(null, message, "Error", JOptionPane.ERROR_MESSAGE);
 		}
 	}
 
-	public class ResultsTreeMouseListener extends MouseAdapter
-	{
-		private final Logger logger = Logger.getLogger(ResultsTreeMouseListener.class);
-
-		JPopupMenu similarFilesContextMenu;
-		JPopupMenu fileResultContextMenu;
-
-		DefaultMutableTreeNode selectedNode;
-
-		public ResultsTreeMouseListener() {
-			// SimilarFile Node
-			this.similarFilesContextMenu = new JPopupMenu();
-			JMenuItem browseToItem = new JMenuItem("Open in file browser", new ImageIcon(
-					ResultsTreeMouseListener.class.getResource("/icons/i16x16/folder-open.png")));
-			browseToItem.addActionListener(new OpenInFileBrowserAction());
-			this.similarFilesContextMenu.add(browseToItem);
-			this.similarFilesContextMenu.addSeparator();
-			JMenuItem deleteItem = new JMenuItem("Delete", new ImageIcon(
-					ResultsTreeMouseListener.class.getResource("/icons/i16x16/edit-delete-shred.png")));
-			deleteItem.addActionListener(new DeleteFileAction());
-			this.similarFilesContextMenu.add(deleteItem);
-
-			// FileResult Node
-			this.fileResultContextMenu = new JPopupMenu();
-			browseToItem = new JMenuItem("Open in file browser", new ImageIcon(
-					ResultsTreeMouseListener.class.getResource("/icons/i16x16/folder-open.png")));
-			browseToItem.addActionListener(new OpenInFileBrowserAction());
-			this.fileResultContextMenu.add(browseToItem);
-			this.fileResultContextMenu.addSeparator();
-			deleteItem = new JMenuItem("Delete", new ImageIcon(
-					ResultsTreeMouseListener.class.getResource("/icons/i16x16/edit-delete-shred.png")));
-			deleteItem.addActionListener(new DeleteFileAction());
-			this.fileResultContextMenu.add(deleteItem);
-			JMenuItem deleteAllSimilarItem = new JMenuItem("Delete all similar files", new ImageIcon(
-					ResultsTreeMouseListener.class.getResource("/icons/i16x16/edit-delete-shred.png")));
-			deleteAllSimilarItem.addActionListener(new DeleteAllSimilarFilesAction());
-			this.fileResultContextMenu.add(deleteAllSimilarItem);
-			this.fileResultContextMenu.addSeparator();
-			JMenuItem deleteFileAndAllSimilarItem = new JMenuItem("Delete this file and all similar", new ImageIcon(
-					ResultsTreeMouseListener.class.getResource("/icons/i16x16/edit-delete-shred-all.png")));
-			deleteFileAndAllSimilarItem.addActionListener(new DeleteFileAndAllSimilarFilesAction());
-			this.fileResultContextMenu.add(deleteFileAndAllSimilarItem);
-		}
-
-		protected int showConfirmDeleteDialog(File f) {
-			int choice = JOptionPane.showConfirmDialog(App.this.frmMain,
-					"<html>Are you sure you want to delete this file?<br/><br/>" + f.getAbsolutePath() + "</html>",
-					"File deletion", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE, new ImageIcon(
-							ResultsTreeMouseListener.class.getResource("/icons/i32x32/dialog-warning.png")));
-			return choice;
-		}
-
-		protected int showConfirmDeleteDialog(File f, String msg) {
-			int choice = JOptionPane.showConfirmDialog(App.this.frmMain, "<html>" + msg + "</html>", "File deletion",
-					JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE, new ImageIcon(
-							ResultsTreeMouseListener.class.getResource("/icons/i32x32/dialog-warning.png")));
-			return choice;
-		}
-
-		protected boolean deleteFileAndTreeNode(File f, DefaultMutableTreeNode node) {
-			logger.debug("Deleting file: " + f.getAbsolutePath());
-
-			if (f.delete()) {
-				App.this.treeModel.removeFileNodes(f);
-				logger.info("File deleted: " + f.getAbsolutePath());
-			}
-			else {
-				logger.error("Cannot delete file: " + f.getAbsolutePath());
-				JOptionPane.showMessageDialog(App.this.frmMain, "Cannot delete file.", "Error",
-						JOptionPane.ERROR_MESSAGE,
-						new ImageIcon(ResultsTreeMouseListener.class.getResource("/icons/i32x32/dialog-error.png")));
-				return false;
-			}
-			return true;
-		}
-
-		@Override
-		public void mousePressed(MouseEvent e) {
-			if (e.isPopupTrigger()) {
-				this.popupMenu(e);
-			}
-		}
-
-		@Override
-		public void mouseReleased(MouseEvent e) {
-			if (e.isPopupTrigger()) {
-				this.popupMenu(e);
-			}
-		}
-
-		protected File getEventTargetFile() {
-			File targetFile = null;
-			if (selectedNode.getUserObject() instanceof SimilarityResult) {
-				SimilarityResult sr = ((SimilarityResult) selectedNode.getUserObject());
-				targetFile = sr.getSimilarFile();
-			}
-			else if (selectedNode.getUserObject() instanceof FileResult) {
-				FileResult fr = ((FileResult) selectedNode.getUserObject());
-				targetFile = fr.getReferenceFile();
-			}
-			else {
-				logger.error("Invalid user object: " + selectedNode.getUserObject());
-			}
-			return targetFile;
-		}
-
-		private void popupMenu(MouseEvent e) {
-			ResultsTree tree = (ResultsTree) e.getSource();
-			TreePath tp = tree.getPathForLocation(e.getX(), e.getY());
-			tree.setSelectionPath(tp);
-
-			if (tp != null) {
-				this.selectedNode = (DefaultMutableTreeNode) tp.getLastPathComponent();
-				if (this.selectedNode.getUserObject() instanceof FileResult) {
-					this.fileResultContextMenu.show(tree, e.getX(), e.getY());
-				}
-				else if (this.selectedNode.getUserObject() instanceof SimilarityResult) {
-					this.similarFilesContextMenu.show(tree, e.getX(), e.getY());
-				}
-				else {
-					this.selectedNode = null;
-				}
-			}
-		}
-
-		protected final class OpenInFileBrowserAction implements ActionListener
-		{
-			@Override
-			public void actionPerformed(ActionEvent ev) {
-				File targetFile = getEventTargetFile();
-
-				Desktop desktop = Desktop.getDesktop();
-				try {
-					desktop.browse(targetFile.getParentFile().toURI());
-				}
-				catch (Exception e) {
-					logger.error(e.getMessage(), e);
-					JOptionPane
-							.showMessageDialog(
-									App.this.frmMain,
-									"Cannot open file browser.",
-									"Error",
-									JOptionPane.ERROR_MESSAGE,
-									new ImageIcon(ResultsTreeMouseListener.class
-											.getResource("/icons/i16x16/dialog-error.png")));
-				}
-			}
-		}
-
-		protected final class DeleteFileAction implements ActionListener
-		{
-			@Override
-			public void actionPerformed(ActionEvent ev) {
-				File targetFile = getEventTargetFile();
-
-				int choice = ResultsTreeMouseListener.this.showConfirmDeleteDialog(targetFile);
-				if (choice == JOptionPane.YES_OPTION) {
-					ResultsTreeMouseListener.this.deleteFileAndTreeNode(targetFile, selectedNode);
-				}
-			}
-		}
-
-		protected final class DeleteAllSimilarFilesAction implements ActionListener
-		{
-			@Override
-			public void actionPerformed(ActionEvent ev) {
-				File targetFile = getEventTargetFile();
-
-				int choice = ResultsTreeMouseListener.this.showConfirmDeleteDialog(
-						targetFile,
-						"Are you sure you want to delete all files similar to this one?<br/>"
-								+ targetFile.getAbsolutePath() + "<br/>(" + selectedNode.getChildCount()
-								+ " file(s) will be deleted)");
-
-				int filesCount = selectedNode.getChildCount();
-				int filesDeleted = 0;
-				if (choice == JOptionPane.YES_OPTION) {
-					for (int i = filesCount - 1; i >= 0; i--) {
-						DefaultMutableTreeNode childNode = (DefaultMutableTreeNode) selectedNode.getChildAt(i);
-						SimilarityResult sr = ((SimilarityResult) childNode.getUserObject());
-						if (ResultsTreeMouseListener.this.deleteFileAndTreeNode(sr.getSimilarFile(), childNode)) {
-							filesDeleted++;
-						}
-					}
-					if (filesCount == filesDeleted) {
-						JOptionPane.showMessageDialog(
-								App.this.frmMain,
-								"<html>" + filesCount + " file(s) deleted successfully</html>",
-								"File deletion",
-								JOptionPane.INFORMATION_MESSAGE,
-								new ImageIcon(ResultsTreeMouseListener.class
-										.getResource("/icons/i32x32/dialog-information.png")));
-					}
-					else {
-						JOptionPane.showMessageDialog(
-								App.this.frmMain,
-								"<html>" + filesDeleted + " file(s) deleted successfully.<br/>"
-										+ (filesCount - filesDeleted) + " could not be deleted.</html>",
-								"File deletion",
-								JOptionPane.WARNING_MESSAGE,
-								new ImageIcon(ResultsTreeMouseListener.class
-										.getResource("/icons/i32x32/dialog-warning")));
-					}
-				}
-			}
-		}
-
-		protected final class DeleteFileAndAllSimilarFilesAction implements ActionListener
-		{
-			@Override
-			public void actionPerformed(ActionEvent ev) {
-				File targetFile = getEventTargetFile();
-
-				int choice = ResultsTreeMouseListener.this.showConfirmDeleteDialog(
-						targetFile,
-						"Are you sure you want to delete all files similar to this one?<br/>"
-								+ targetFile.getAbsolutePath() + "<br/>(" + (selectedNode.getChildCount() + 1)
-								+ " file(s) will be deleted)");
-
-				int filesCount = selectedNode.getChildCount() + 1;
-				int filesDeleted = 0;
-				if (choice == JOptionPane.YES_OPTION) {
-					for (int i = filesCount - 2; i >= 0; i--) {
-						DefaultMutableTreeNode childNode = (DefaultMutableTreeNode) selectedNode.getChildAt(i);
-						SimilarityResult sr = ((SimilarityResult) childNode.getUserObject());
-						if (ResultsTreeMouseListener.this.deleteFileAndTreeNode(sr.getSimilarFile(), childNode)) {
-							filesDeleted++;
-						}
-					}
-					if (ResultsTreeMouseListener.this.deleteFileAndTreeNode(targetFile, selectedNode)) {
-						filesDeleted++;
-					}
-					if (filesCount == filesDeleted) {
-						JOptionPane.showMessageDialog(
-								App.this.frmMain,
-								"<html>" + filesCount + " file(s) deleted successfully</html>",
-								"File deletion",
-								JOptionPane.INFORMATION_MESSAGE,
-								new ImageIcon(ResultsTreeMouseListener.class
-										.getResource("/icons/i32x32/dialog-information.png")));
-					}
-					else {
-						JOptionPane.showMessageDialog(
-								App.this.frmMain,
-								"<html>" + filesDeleted + " file(s) deleted successfully.<br/>"
-										+ (filesCount - filesDeleted) + " could not be deleted.</html>",
-								"File deletion",
-								JOptionPane.WARNING_MESSAGE,
-								new ImageIcon(ResultsTreeMouseListener.class
-										.getResource("/icons/i32x32/dialog-warning")));
-					}
-				}
-			}
-		}
-	}
-
-	private class ResultsTreeSelectionListener implements TreeSelectionListener
-	{
+	protected class ResultsTreeSelectionListener implements TreeSelectionListener {
 		@Override
 		public void valueChanged(TreeSelectionEvent e) {
 			final ResultsTree sourceTree = (ResultsTree) e.getSource();
 			final ResultsTree otherTree = this.getOtherTree(sourceTree);
-			//final JScrollPane otherScrollPane = this.getOtherScrollpane(sourceTree);
+			// final JScrollPane otherScrollPane = this.getOtherScrollpane(sourceTree);
 
 			DefaultMutableTreeNode selectedNode = (DefaultMutableTreeNode) sourceTree.getLastSelectedPathComponent();
 			if (selectedNode == null) {
@@ -972,14 +732,13 @@ public class App
 			}
 
 			if (selectedNode.getUserObject() instanceof FileResult) {
-				File referenceFile = ((FileResult) selectedNode.getUserObject()).getReferenceFile();
+				File referenceFile = ((FileResult) selectedNode.getUserObject()).getReferenceFile().toFile();
 				App.this.fileInfoPanel.display(referenceFile);
-
-				// TODO more?
-			}
-			else if (selectedNode.getUserObject() instanceof SimilarityResult) {
-				File similarFile = ((SimilarityResult) selectedNode.getUserObject()).getSimilarFile();
-				App.this.fileInfoPanel.display(similarFile);
+			} else if (selectedNode.getUserObject() instanceof SimilarityResult) {
+				SimilarityResult similarityResult = (SimilarityResult) selectedNode.getUserObject();
+				Path similarFile = similarityResult.getSimilarFile();
+				App.this.fileInfoPanel.display(similarFile.toFile());
+				App.this.diffViewerPane.update(similarityResult.getReferenceFile().toFile(), similarityResult.getSimilarFile().toFile());
 
 				DefaultMutableTreeNode similarFileNode = App.this.treeModel.getNodeFromPath(similarFile);
 
@@ -987,14 +746,13 @@ public class App
 				otherTree.collapse();
 				otherTree.setSelectionPath(path);
 				otherTree.expandPath(path);
-				
+
 				// Scroll to that node
 				// TODO Improve that
 				Rectangle bounds = otherTree.getPathBounds(path);
 				bounds.height = otherTree.getVisibleRect().height;
 				otherTree.scrollRectToVisible(bounds);
-			}
-			else {
+			} else {
 				App.this.fileInfoPanel.clear();
 			}
 		}
@@ -1002,9 +760,5 @@ public class App
 		private ResultsTree getOtherTree(ResultsTree t) {
 			return App.this.treeLeft == t ? App.this.treeRight : App.this.treeLeft;
 		}
-
-//		private JScrollPane getOtherScrollpane(ResultsTree t) {
-//			return App.this.treeLeft == t ? App.this.scrollPaneRight : App.this.scrollPaneLeft;
-//		}
 	}
 }

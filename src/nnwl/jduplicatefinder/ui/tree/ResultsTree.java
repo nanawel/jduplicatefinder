@@ -2,26 +2,42 @@ package nnwl.jduplicatefinder.ui.tree;
 
 /**
  * JDuplicateFinder
- *  
+ *
  * @author Anael Ollier <nanawel NOSPAM [at] gmail [dot] com>
  * @license GPLv3 - See LICENSE
  */
+
+import nnwl.jduplicatefinder.engine.FileResult;
+import nnwl.jduplicatefinder.engine.SimilarityResult;
+import nnwl.jduplicatefinder.ui.ResultsTreeModel;
+import org.apache.log4j.Logger;
+
+import javax.swing.*;
+import javax.swing.tree.DefaultMutableTreeNode;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.swing.JTree;
-
-import nnwl.jduplicatefinder.ui.ResultsTreeModel;
-
-import org.apache.log4j.Logger;
-
 /**
- * 
- * @author Anael Ollier
+ * JDuplicateFinder
+ *
+ * @author Anael Ollier <nanawel NOSPAM [at] gmail [dot] com>
+ * @license GPLv3 - See LICENSE
  */
-public class ResultsTree extends JTree
-{
+public class ResultsTree extends JTree {
+	private static Logger logger = Logger.getLogger(ResultsTree.class);
+
 	private static final long serialVersionUID = 3820592884777798998L;
+
+	protected ContextMenuHelper contextMenuHelper;
+
+	public ContextMenuHelper getContextMenuHelper() {
+		return contextMenuHelper;
+	}
+
+	public void setContextMenuHelper(ContextMenuHelper contextMenuHelper) {
+		this.contextMenuHelper = contextMenuHelper;
+	}
 
 	public void expand() {
 		for (int i = 0; i < this.getRowCount(); i++) {
@@ -41,8 +57,41 @@ public class ResultsTree extends JTree
 		}
 	}
 
-	public class Expander implements Runnable
-	{
+	public DefaultMutableTreeNode getSelectedNode() {
+		if (this.getSelectionPath() != null) {
+			return (DefaultMutableTreeNode) this.getSelectionPath().getLastPathComponent();
+		}
+		return null;
+	}
+
+	/**
+	 * FIXME That method is simply not right!
+	 *
+	 * @return The path corresponding to the selected node, or null if none is found
+	 */
+	public Path getEventTargetPath() {
+		Path targetFile = null;
+		DefaultMutableTreeNode selectedNode = this.getSelectedNode();
+
+		if (selectedNode == null) {
+			return null;
+		}
+		if (selectedNode.getUserObject() instanceof SimilarityResult) {
+			SimilarityResult sr = ((SimilarityResult) selectedNode.getUserObject());
+			targetFile = sr.getSimilarFile();
+		} else if (selectedNode.getUserObject() instanceof FileResult) {
+			FileResult fr = ((FileResult) selectedNode.getUserObject());
+			targetFile = fr.getReferenceFile();
+		} else if (selectedNode.getUserObject() instanceof Path) {
+			// FIXME View should not know about model type
+			targetFile = (Path) selectedNode.getUserObject();
+		} else {
+			logger.error("Invalid user object: " + selectedNode.getUserObject());
+		}
+		return targetFile;
+	}
+
+	public class Expander implements Runnable {
 		private final Logger logger = Logger.getLogger(Expander.class);
 
 		public static final int LISTENERS_ROWS_STEP = 50;
@@ -68,8 +117,7 @@ public class ResultsTree extends JTree
 					}
 				}
 				logger.debug("Expanding completed. Terminating thread.");
-			}
-			catch (InterruptedException e) {
+			} catch (InterruptedException e) {
 				// nothing, just exit
 			}
 		}
@@ -94,13 +142,11 @@ public class ResultsTree extends JTree
 		}
 	}
 
-	public interface ExpanderListener
-	{
-		public void expandProgress(ExpanderEvent ev);
+	public interface ExpanderListener {
+		void expandProgress(ExpanderEvent ev);
 	}
 
-	public class ExpanderEvent
-	{
+	public class ExpanderEvent {
 		private int currentRow = 0;
 
 		private int totalRow = 0;

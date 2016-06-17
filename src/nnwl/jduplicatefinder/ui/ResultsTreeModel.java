@@ -1,36 +1,41 @@
 package nnwl.jduplicatefinder.ui;
 
-import java.io.File;
-import java.nio.file.Path;
-import java.util.Map;
-import java.util.TreeMap;
-
-import javax.swing.tree.DefaultMutableTreeNode;
-import javax.swing.tree.DefaultTreeModel;
-
 import nnwl.jduplicatefinder.engine.FileResult;
 import nnwl.jduplicatefinder.engine.ResultsSet;
 import nnwl.jduplicatefinder.engine.SimilarityResult;
-
+import nnwl.jduplicatefinder.filesystem.FileSystemInterface;
 import org.apache.log4j.Logger;
+
+import javax.swing.tree.DefaultMutableTreeNode;
+import javax.swing.tree.DefaultTreeModel;
+import java.io.File;
+import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
 
 /**
  * JDuplicateFinder
- *  
+ *
  * @author Anael Ollier <nanawel NOSPAM [at] gmail [dot] com>
  * @license GPLv3 - See LICENSE
  */
-public class ResultsTreeModel extends DefaultTreeModel
-{
+public class ResultsTreeModel extends DefaultTreeModel {
 	private static final Logger logger = Logger.getLogger(ResultsTreeModel.class);
 
 	private static final long serialVersionUID = 7344346841047639198L;
 
 	/**
-	 * Reference file => FileResult tree node
+	 * Reference path => FileResult tree node
 	 */
-	private TreeMap<File, DefaultMutableTreeNode> fileResultNodes;
-	
+	private TreeMap<Path, DefaultMutableTreeNode> fileResultNodes = new TreeMap<Path, DefaultMutableTreeNode>();
+
+	/**
+	 * Directory => tree node
+	 */
+	private TreeMap<Path, DefaultMutableTreeNode> directoryNodes = new TreeMap<Path, DefaultMutableTreeNode>();
+
 	private int totalNodesCount = 1;
 
 	public ResultsTreeModel() {
@@ -47,18 +52,21 @@ public class ResultsTreeModel extends DefaultTreeModel
 			this.totalNodesCount++;
 		}
 
-		this.fileResultNodes = new TreeMap<File, DefaultMutableTreeNode>();
-		for (Map.Entry<File, FileResult> cursor : results.entrySet()) {
+		for (Map.Entry<Path, FileResult> cursor : results.entrySet()) {
 			DefaultMutableTreeNode fileResultNode = this.addResultNode(cursor.getValue());
 			this.fileResultNodes.put(cursor.getValue().getReferenceFile(), fileResultNode);
 		}
-		this.reload((DefaultMutableTreeNode) this.getRoot());
+		this.reload(this.getRoot());
 
 		logger.debug("Tree model updated");
 	}
 
 	public DefaultMutableTreeNode getRoot() {
 		return (DefaultMutableTreeNode) super.getRoot();
+	}
+
+	public DefaultMutableTreeNode getSubrootForFile(File file) {
+		return this.getSubrootForPath(file.toPath());
 	}
 
 	public DefaultMutableTreeNode getSubrootForPath(Path path) {
@@ -72,11 +80,10 @@ public class ResultsTreeModel extends DefaultTreeModel
 	}
 
 	public DefaultMutableTreeNode addResultNode(FileResult fileResult) {
-		// Add reference file node if it does not exist
-		DefaultMutableTreeNode parentFolderNode = this.createNodeFileTreeForPath(fileResult.getReferenceFile()
-				.getParentFile());
+		// Add reference path node if it does not exist
+		DefaultMutableTreeNode parentFolderNode = this.createNodeFileTree(fileResult.getReferenceFile().getParent());
 		if (parentFolderNode == null) {
-			throw new IllegalStateException(fileResult.getReferenceFile().getAbsolutePath());
+			throw new IllegalStateException(fileResult.getReferenceFile().toAbsolutePath().toString());
 		}
 
 		DefaultMutableTreeNode fileResultNode = this.getChildNodeFromValue(parentFolderNode, fileResult);
@@ -95,31 +102,30 @@ public class ResultsTreeModel extends DefaultTreeModel
 		return fileResultNode;
 	}
 
-	public DefaultMutableTreeNode getNodeFromPath(File path) {
-		if (path.isFile()) {
+	public DefaultMutableTreeNode getNodeFromPath(Path path) {
+		if (this.fileResultNodes.containsKey(path)) {
 			return this.fileResultNodes.get(path);
+		}
+		if (this.directoryNodes.containsKey(path)) {
+			return this.directoryNodes.get(path);
 		}
 		return null;
 	}
 
-	public DefaultMutableTreeNode createNodeFileTreeForPath(File path) {
-		return this.createNodeFileTreeForPath(path.toPath());
-	}
-
-	public DefaultMutableTreeNode createNodeFileTreeForPath(Path path) {
+	public DefaultMutableTreeNode createNodeFileTree(Path path) {
 		DefaultMutableTreeNode baseNode = this.getSubrootForPath(path);
 		Path basePath = (Path) baseNode.getUserObject();
-
 		if (basePath.equals(path)) {
 			return baseNode;
 		}
-
 		DefaultMutableTreeNode childNode = null;
 		for (int i = basePath.getNameCount(); i < path.getNameCount(); i++) {
-			childNode = this.getChildNodeFromValue(baseNode, path.getName(i));
+			Path folderPath = basePath.getRoot().resolve(path.subpath(0, i + 1));
+			childNode = this.getChildNodeFromValue(baseNode, folderPath);
 			if (childNode == null) {
-				childNode = new DefaultMutableTreeNode(path.getName(i));
+				childNode = new DefaultMutableTreeNode(folderPath);
 				baseNode.add(childNode);
+				this.directoryNodes.put(folderPath, childNode);
 				this.totalNodesCount++;
 			}
 			if (i < path.getNameCount() - 1) {
@@ -140,9 +146,9 @@ public class ResultsTreeModel extends DefaultTreeModel
 	}
 
 	public DefaultMutableTreeNode getNodeFromValue(SimilarityResult similarityResult) {
-		File referenceFile = similarityResult.getReferenceFile();
+		Path referenceFile = similarityResult.getReferenceFile();
 
-		DefaultMutableTreeNode fileResultNode = this.fileResultNodes.get(referenceFile);
+		DefaultMutableTreeNode fileResultNode = this.getNodeFromPath(referenceFile);
 		return this.getChildNodeFromValue(fileResultNode, similarityResult);
 	}
 
@@ -151,61 +157,102 @@ public class ResultsTreeModel extends DefaultTreeModel
 		while (!found && !node.isRoot()) {
 			if (node.getLevel() == 1) {
 				found = true;
-			}
-			else {
+			} else {
 				node = (DefaultMutableTreeNode) node.getParent();
 			}
 		}
 		return node;
 	}
 
-	/**
-	 * @param path
-	 * @return The node matching the given reference file path
-	 */
-	public DefaultMutableTreeNode getFileResultTreeNodeFromPath(String path) {
-		return this.fileResultNodes.get(path);
-	}
-
 	public int getTotalNodesCount() {
-		return totalNodesCount;
+		return this.totalNodesCount;
 	}
 
 	public void removeNodeAndEmptyParents(DefaultMutableTreeNode node) {
 		if (node.getParent() != null) {
 			if (node.getParent().getChildCount() == 1 && !((DefaultMutableTreeNode) node.getParent()).isRoot()) {
 				this.removeNodeAndEmptyParents((DefaultMutableTreeNode) node.getParent());
-			}
-			else {
+			} else {
 				this.removeNodeFromParent(node);
 				//TODO update this.totalNodesCount
 			}
 		}
 	}
 
-	public void removeFileNodes(File f) {
-		DefaultMutableTreeNode fileResultNode = this.fileResultNodes.get(f);
-		if (fileResultNode != null) {
-			for (int i = 0; i < fileResultNode.getChildCount(); i++) {
-				DefaultMutableTreeNode childNode = (DefaultMutableTreeNode) fileResultNode.getChildAt(i);
+	public void removeFileNodes(Path path) {
+		DefaultMutableTreeNode node = this.getNodeFromPath(path);
+		if (node == null) {
+			logger.warn("Cannot find specified path in the tree: " + path.toAbsolutePath());
+		} else {
+			this.removeFileNode(node);
+		}
+	}
+
+	public void removeFileNode(DefaultMutableTreeNode node) {
+		// ResultNode
+		if (node.getUserObject() instanceof FileResult) {
+			for (int i = 0; i < node.getChildCount(); i++) {
+				DefaultMutableTreeNode childNode = (DefaultMutableTreeNode) node.getChildAt(i);
 				SimilarityResult sr = (SimilarityResult) childNode.getUserObject();
-				DefaultMutableTreeNode similarFileResultNode = this.fileResultNodes.get(sr.getSimilarFile());
+				DefaultMutableTreeNode similarFileResultNode = this.getNodeFromPath(sr.getSimilarFile());
 				if (similarFileResultNode != null) {
 					for (int j = 0; j < similarFileResultNode.getChildCount(); j++) {
 						DefaultMutableTreeNode similarFileResultChildNode = (DefaultMutableTreeNode) similarFileResultNode
 								.getChildAt(j);
-						if (((SimilarityResult) similarFileResultChildNode.getUserObject()).getSimilarFile().equals(f)) {
+						if (((SimilarityResult) similarFileResultChildNode.getUserObject()).getSimilarFile()
+								.equals(((FileResult) node.getUserObject()).getReferenceFile())) {
 							this.removeNodeAndEmptyParents(similarFileResultChildNode);
 						}
 					}
 				}
 			}
-			this.removeNodeAndEmptyParents(fileResultNode);
+			this.removeNodeAndEmptyParents(node);
+		}
+		// Folder
+		else if (node.getUserObject() instanceof Path) {
+			while (node.getChildCount() > 0) {
+				DefaultMutableTreeNode childNode = (DefaultMutableTreeNode) node.getChildAt(0);
+				this.removeFileNode(childNode);
+			}
+		} else {
+			logger.debug("Unhandled userobject found on node: " + node.getUserObject());
 		}
 	}
 
+	public boolean deleteFileAndTreeNode(Path path) {
+		return this.deleteFileAndTreeNode(path, false);
+	}
+
+	/**
+	 * @param path
+	 * @return
+	 */
+	public boolean deleteFileAndTreeNode(Path path, boolean recursive) {
+		logger.debug("Deleting path/folder: " + path.toAbsolutePath());
+
+		if (FileSystemInterface.getFileSystemInterface().delete(path.toFile(), recursive)) {
+			this.removeFileNodes(path);
+			return true;
+		}
+		logger.error("Could not delete path/folder: " + path.toAbsolutePath());
+		return false;
+	}
+
 	public void resetResults() {
-		((DefaultMutableTreeNode) this.getRoot()).removeAllChildren();
-		logger.debug("Results reset");
+		this.getRoot().removeAllChildren();
+		this.fileResultNodes.clear();
+		this.totalNodesCount = 0;
+		logger.debug("Results have been reset");
+	}
+
+	public List<FileResult> getFileResultsInFolder(Path folder) {
+		List<FileResult> results = new ArrayList<>();
+		for (Map.Entry<Path, DefaultMutableTreeNode> entry : this.fileResultNodes.entrySet()) {
+			Path path = entry.getKey();
+			if (path.startsWith(folder)) {
+				results.add(((FileResult) entry.getValue().getUserObject()));
+			}
+		}
+		return results;
 	}
 }

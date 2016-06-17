@@ -2,12 +2,11 @@ package nnwl.jduplicatefinder.engine.comparators.exception;
 
 /**
  * JDuplicateFinder
- *  
+ *
  * @author Anael Ollier <nanawel NOSPAM [at] gmail [dot] com>
  * @license GPLv3 - See LICENSE
  */
-public class ComparatorException extends Exception
-{
+public class ComparatorException extends Exception {
 	private static final long serialVersionUID = 1307706267160320948L;
 
 	public ComparatorException() {

@@ -2,12 +2,11 @@ package nnwl.jduplicatefinder.engine.event;
 
 /**
  * JDuplicateFinder
- *  
+ *
  * @author Anael Ollier <nanawel NOSPAM [at] gmail [dot] com>
  * @license GPLv3 - See LICENSE
  */
-public class RunnerAdapter implements RunnerListener
-{
+public class RunnerAdapter implements RunnerListener {
 	@Override
 	public void statusChanged(RunnerEvent ev) {
 	}
@@ -37,7 +36,7 @@ public class RunnerAdapter implements RunnerListener
 	}
 
 	@Override
-	public void exceptionCaugth(RunnerExceptionEvent ev) {
+	public void exceptionCaught(RunnerExceptionEvent ev) {
 	}
 
 	@Override

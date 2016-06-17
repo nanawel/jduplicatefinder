@@ -1,39 +1,28 @@
 package nnwl.jduplicatefinder.ui;
 
-import java.awt.BorderLayout;
-import java.awt.Dimension;
-import java.awt.GridBagConstraints;
-import java.awt.GridBagLayout;
+import javax.swing.*;
+import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.io.File;
-
-import javax.swing.AbstractAction;
-import javax.swing.BoxLayout;
-import javax.swing.ImageIcon;
-import javax.swing.JButton;
-import javax.swing.JFileChooser;
-import javax.swing.JOptionPane;
-import javax.swing.JPanel;
-import javax.swing.JScrollPane;
-import javax.swing.ScrollPaneConstants;
+import java.nio.file.FileSystems;
+import java.nio.file.Path;
 
 /**
  * JDuplicateFinder
- *  
+ *
  * @author Anael Ollier <nanawel NOSPAM [at] gmail [dot] com>
  * @license GPLv3 - See LICENSE
  */
-public class FileStackPanel extends JPanel
-{
+public class FileStackPanel extends JPanel {
 	private static final long serialVersionUID = -2913181581548208542L;
 
 	public JScrollPane scrollPane;
 
 	public JPanel stackContainer;
-	
+
 	protected JFileChooser fc;
 
-	protected File defaultDirectory;
+	protected Path defaultDirectory;
 
 
 	/**
@@ -46,12 +35,11 @@ public class FileStackPanel extends JPanel
 	/**
 	 * Create the panel.
 	 */
-	public FileStackPanel(File defaultDirectory, JFileChooser fileChooser) {
+	public FileStackPanel(Path defaultDirectory, JFileChooser fileChooser) {
 		super();
 		if (defaultDirectory == null) {
-			this.defaultDirectory = new File(System.getProperty("user.dir"));
-		}
-		else {
+			this.defaultDirectory = FileSystems.getDefault().getPath(System.getProperty("user.dir"));
+		} else {
 			this.defaultDirectory = defaultDirectory;
 		}
 		fc = fileChooser;
@@ -60,13 +48,13 @@ public class FileStackPanel extends JPanel
 
 		stackContainer = new JPanel();
 		stackContainer.setLayout(new BoxLayout(stackContainer, BoxLayout.Y_AXIS));
-		
+
 		scrollPane = new JScrollPane(stackContainer);
 		scrollPane.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
 		add(scrollPane, BorderLayout.CENTER);
 
 		this.addEmptyLine();
-		
+
 		Dimension preferredSize = scrollPane.getPreferredSize();
 		scrollPane.setPreferredSize(preferredSize);
 	}
@@ -76,24 +64,24 @@ public class FileStackPanel extends JPanel
 		stackContainer.add(fb);
 		return fb;
 	}
-	
-	public void addPath(File file) {
+
+	public void addPath(Path path) {
 		FileButton newPath = this.addEmptyLine();
-		newPath.setText(file.getAbsolutePath());
+		newPath.setText(path.toAbsolutePath().toString());
 		newPath.enableDelete();
 	}
 
-	public File[] getFiles() {
-		File[] paths = new File[stackContainer.getComponentCount() - 1];
+	public Path[] getPaths() {
+		Path[] paths = new Path[stackContainer.getComponentCount() - 1];
 		for (int i = 0; i < stackContainer.getComponentCount() - 1; i++) {
-			paths[i] = new File(((JButton) stackContainer.getComponent(i)).getText());
+			paths[i] = FileSystems.getDefault().getPath(((JButton) stackContainer.getComponent(i)).getText());
 		}
 		return paths;
 	}
 
-	public boolean pathExists(String path) {
-		for (File f : this.getFiles()) {
-			if (f.getAbsolutePath().equals(path)) {
+	public boolean pathExists(Path path) {
+		for (Path f : this.getPaths()) {
+			if (f.toAbsolutePath().equals(path.toAbsolutePath())) {
 				return true;
 			}
 		}
@@ -105,14 +93,13 @@ public class FileStackPanel extends JPanel
 			this.addEmptyLine();
 		}
 	}
-	
+
 	public void clearPaths() {
 		stackContainer.removeAll();
 		//this.keepAtLeastOneLine();
 	}
 
-	private class FileButton extends JButton
-	{
+	private class FileButton extends JButton {
 		private static final long serialVersionUID = -8685544916590007133L;
 
 		private JButton btnDelete;
@@ -121,13 +108,12 @@ public class FileStackPanel extends JPanel
 			super();
 
 			this.setHorizontalAlignment(LEFT);
-			this.setFont(this.getFont().deriveFont(8));
 
 			GridBagLayout gbl_this = new GridBagLayout();
-			gbl_this.columnWidths = new int[] { 0, 0, 0, 0 };
-			gbl_this.rowHeights = new int[] { 0, 0 };
-			gbl_this.columnWeights = new double[] { 1.0, 0.0, 0.0, Double.MIN_VALUE };
-			gbl_this.rowWeights = new double[] { 0.0, Double.MIN_VALUE };
+			gbl_this.columnWidths = new int[]{0, 0, 0, 0};
+			gbl_this.rowHeights = new int[]{0, 0};
+			gbl_this.columnWeights = new double[]{1.0, 0.0, 0.0, Double.MIN_VALUE};
+			gbl_this.rowWeights = new double[]{0.0, Double.MIN_VALUE};
 			this.setLayout(gbl_this);
 
 			this.setAction(new BrowseAction(this));
@@ -142,9 +128,9 @@ public class FileStackPanel extends JPanel
 			this.add(btnDelete, gbc_btnDelete);
 
 			// Avoid growing vertically
-			Dimension preferedSize = this.getPreferredSize();
-			preferedSize.width = this.getMaximumSize().width;
-			this.setMaximumSize(preferedSize);
+			Dimension preferredSize = this.getPreferredSize();
+			preferredSize.width = this.getMaximumSize().width;
+			this.setMaximumSize(preferredSize);
 		}
 
 		public void enableDelete() {
@@ -152,8 +138,7 @@ public class FileStackPanel extends JPanel
 		}
 	}
 
-	private class BrowseAction extends AbstractAction
-	{
+	private class BrowseAction extends AbstractAction {
 		private static final long serialVersionUID = 8321007256535416876L;
 
 		protected FileButton panel;
@@ -170,28 +155,25 @@ public class FileStackPanel extends JPanel
 			if (currentFile.isAbsolute() && currentFile.exists() && currentFile.canRead()) {
 				if (currentFile.isDirectory()) {
 					fc.setCurrentDirectory(currentFile);
-				}
-				else {
+				} else {
 					fc.setCurrentDirectory(currentFile.getParentFile());
 				}
 				wasEmpty = false;
-			}
-			else {
-				fc.setCurrentDirectory(FileStackPanel.this.defaultDirectory);
+			} else {
+				fc.setCurrentDirectory(FileStackPanel.this.defaultDirectory.toFile());
 			}
 
 			int returnVal = fc.showOpenDialog(this.panel);
 
 			if (returnVal == JFileChooser.APPROVE_OPTION) {
-				File file = fc.getSelectedFile();
+				Path path = fc.getSelectedFile().toPath();
 
-				if (FileStackPanel.this.pathExists(file.getAbsolutePath())) {
+				if (FileStackPanel.this.pathExists(path)) {
 					JOptionPane.showMessageDialog(FileStackPanel.this, "This path is already in the list.",
 							"Path already exists", JOptionPane.ERROR_MESSAGE,
 							new ImageIcon(App.class.getResource("/icons/i32x32/dialog-error.png")));
-				}
-				else {
-					this.panel.setText(file.getAbsolutePath());
+				} else {
+					this.panel.setText(path.toAbsolutePath().toString());
 					this.panel.enableDelete();
 
 					if (wasEmpty) {
@@ -202,8 +184,7 @@ public class FileStackPanel extends JPanel
 		}
 	}
 
-	private class DeleteAction extends AbstractAction
-	{
+	private class DeleteAction extends AbstractAction {
 		private static final long serialVersionUID = 6972138790090701414L;
 
 		protected JButton panel;

@@ -1,20 +1,5 @@
 package nnwl.jduplicatefinder.engine.comparators;
 
-import static com.googlecode.cqengine.query.QueryFactory.between;
-import static com.googlecode.cqengine.query.QueryFactory.equal;
-
-import java.io.File;
-import java.util.ArrayList;
-import java.util.Map;
-
-import nnwl.jduplicatefinder.engine.FileResult;
-import nnwl.jduplicatefinder.engine.ResultsSet;
-import nnwl.jduplicatefinder.engine.SimilarityResult;
-import nnwl.jduplicatefinder.engine.comparators.exception.ComparatorException;
-import nnwl.jduplicatefinder.util.Files;
-
-import org.apache.log4j.Logger;
-
 import com.googlecode.cqengine.CQEngine;
 import com.googlecode.cqengine.IndexedCollection;
 import com.googlecode.cqengine.attribute.Attribute;
@@ -22,15 +7,28 @@ import com.googlecode.cqengine.attribute.SimpleAttribute;
 import com.googlecode.cqengine.index.hash.HashIndex;
 import com.googlecode.cqengine.index.navigable.NavigableIndex;
 import com.googlecode.cqengine.query.Query;
+import nnwl.jduplicatefinder.engine.FileResult;
+import nnwl.jduplicatefinder.engine.ResultsSet;
+import nnwl.jduplicatefinder.engine.SimilarityResult;
+import nnwl.jduplicatefinder.engine.comparators.exception.ComparatorException;
+import nnwl.jduplicatefinder.util.Files;
+import org.apache.log4j.Logger;
+
+import java.io.File;
+import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.Map;
+
+import static com.googlecode.cqengine.query.QueryFactory.between;
+import static com.googlecode.cqengine.query.QueryFactory.equal;
 
 /**
  * JDuplicateFinder
- *  
+ *
  * @author Anael Ollier <nanawel NOSPAM [at] gmail [dot] com>
  * @license GPLv3 - See LICENSE
  */
-public class Filesize extends AbstractDuplicateComparator
-{
+public class Filesize extends AbstractDuplicateComparator {
 	private static final Logger logger = Logger.getLogger(Filesize.class);
 
 	public static final int MARGIN_TYPE_PERCENTAGE = 1;
@@ -62,13 +60,15 @@ public class Filesize extends AbstractDuplicateComparator
 	}
 
 	@Override
-	public void analyze(File file) {
-		if (file.length() == 0) {
+	public void analyze(Path path) {
+		File file = path.toFile();
+		long size = file.length();
+		if (size == 0) {
 			logger.info(file.getPath() + " is empty, skipping.");
 			return;
 		}
 		this.files.add(file);
-		this.fileCache.add(new CacheUnit(file));
+		this.fileCache.add(new CacheUnit(path, size));
 	}
 
 	@Override
@@ -81,8 +81,7 @@ public class Filesize extends AbstractDuplicateComparator
 			IndexedCollection<CacheUnit> idxSimilarFiles = CQEngine.copyFrom(this.fileCache);
 			if (this.margin == 0) {
 				idxSimilarFiles.addIndex(HashIndex.onAttribute(SIZE));
-			}
-			else {
+			} else {
 				idxSimilarFiles.addIndex(NavigableIndex.onAttribute(SIZE));
 			}
 
@@ -109,7 +108,7 @@ public class Filesize extends AbstractDuplicateComparator
 				long upperLimit = currentFile.getSize() + absoluteMargin;
 
 				if (logger.isDebugEnabled()) {
-					logger.debug(currentFile.file.getAbsolutePath() + ": " + currentFile.size + " B (margin="
+					logger.debug(currentFile.path.toAbsolutePath() + ": " + currentFile.size + " B (margin="
 							+ absoluteMargin + " B)");
 					logger.debug("lowerLimit=" + lowerLimit + " B | upperLimit=" + upperLimit + " B");
 				}
@@ -117,8 +116,7 @@ public class Filesize extends AbstractDuplicateComparator
 				Query<CacheUnit> query;
 				if (this.margin == 0) {
 					query = equal(SIZE, currentFile.getSize());
-				}
-				else {
+				} else {
 					query = between(SIZE, lowerLimit, upperLimit);
 				}
 
@@ -128,19 +126,18 @@ public class Filesize extends AbstractDuplicateComparator
 						throw new InterruptedException();
 					}
 
-					if (sf.file.equals(currentFile.file)) {
+					if (sf.path.equals(currentFile.path)) {
 						continue;
 					}
 
 					long filesizeDelta = absoluteMargin - Math.abs(currentFile.size - sf.size);
 
 					SimilarityResult sr = new SimilarityResult();
-					sr.setReferenceFile(currentFile.file);
-					sr.setSimilarFile(sf.file);
+					sr.setReferenceFile(currentFile.path);
+					sr.setSimilarFile(sf.path);
 					if (absoluteMargin == 0) {
 						sr.setSimilarity(100);
-					}
-					else {
+					} else {
 						sr.setSimilarity((int) Math.ceil((float) filesizeDelta / (float) absoluteMargin * 100));
 					}
 					sr.setComparator(this);
@@ -152,7 +149,7 @@ public class Filesize extends AbstractDuplicateComparator
 					similarityResults.add(sr);
 				}
 				if (similarityResults != null) {
-					this.results.put(currentFile.file, new FileResult(currentFile.file, similarityResults));
+					this.results.put(currentFile.path, new FileResult(currentFile.path, similarityResults));
 				}
 
 				n++;
@@ -161,12 +158,10 @@ public class Filesize extends AbstractDuplicateComparator
 			this.filesAnalyzeCompleted(this, n, this.fileCache.size());
 
 			logger.info("Done");
-		}
-		catch (InterruptedException e) {
+		} catch (InterruptedException e) {
 			logger.info("Interruption requested");
 			;
-		}
-		catch (OutOfMemoryError e) {
+		} catch (OutOfMemoryError e) {
 			e.printStackTrace();
 			this.exceptionCaught(this, new ComparatorException(e.getMessage(), e));
 		}
@@ -183,18 +178,17 @@ public class Filesize extends AbstractDuplicateComparator
 		}
 	};
 
-	public class CacheUnit
-	{
-		public File file;
+	public class CacheUnit {
+		public Path path;
 
 		public long size;
 
-		public CacheUnit(File file) {
-			this.file = file;
-			this.size = file.length();
+		public CacheUnit(Path path, long size) {
+			this.path = path;
+			this.size = size;
 
 			if (logger.isDebugEnabled()) {
-				logger.debug(file.getPath() + ": " + this.size + " (" + Files.humanReadableByteCount(this.size, true)
+				logger.debug(path + ": " + this.size + " (" + Files.humanReadableByteCount(this.size, true)
 						+ ")");
 			}
 		}
