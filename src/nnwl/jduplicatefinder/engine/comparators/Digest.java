@@ -185,10 +185,11 @@ public class Digest extends AbstractDuplicateComparator {
 			is.close();
 		}
 
-		logger.debug(path + ": " + Digest.getHexString(md.digest()));
+		String hexDigest = Digest.getHexString(md.digest());	// Careful! MessageDigest state's gets reset after call!
+		logger.debug(path + ": " + hexDigest);
 		logger.debug("Total bytes read: " + totalRead);
 
-		return new CacheUnit(path, Digest.getHexString(md.digest()));
+		return new CacheUnit(path, hexDigest);
 	}
 
 	@Override
@@ -217,7 +218,7 @@ public class Digest extends AbstractDuplicateComparator {
 
 	public static final Attribute<CacheUnit, String> DIGEST = new SimpleAttribute<CacheUnit, String>("digest") {
 		public String getValue(CacheUnit cu) {
-			return cu.getDigest();
+			return cu.digest;
 		}
 	};
 
@@ -229,10 +230,6 @@ public class Digest extends AbstractDuplicateComparator {
 		public CacheUnit(Path path, String digest) {
 			this.path = path;
 			this.digest = digest;
-		}
-
-		public String getDigest() {
-			return this.digest;
 		}
 	}
 }
