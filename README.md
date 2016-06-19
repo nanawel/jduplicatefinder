@@ -10,14 +10,14 @@ Requires JRE 7. Tested on Windows and Linux platforms.
 
 Screenshots
 ================
-Example of search results
+Example of search results (v1.0)
 --
 ![Example of search results](https://raw.github.com/nanawel/jduplicatefinder/master/docs/screenshot-001.png)
 
-Adding filters
+Adding filters (v1.0)
 --
 ![Adding filters](https://raw.github.com/nanawel/jduplicatefinder/master/docs/screenshot-002.png)
 
-Available actions on result items
+Actions & Diff viewer (v1.3)
 --
-![Available actions on result items](https://raw.github.com/nanawel/jduplicatefinder/master/docs/screenshot-003.png)
+![Available actions on result items](https://raw.github.com/nanawel/jduplicatefinder/master/docs/screenshot-004.png)
