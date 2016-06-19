@@ -25,6 +25,14 @@ public class ResultsTreeKeyListener implements KeyListener {
 		AbstractAction action = null;
 
 		switch (ev.getKeyCode()) {
+			case KeyEvent.VK_ENTER:
+				action = new OpenFileAction(this.tree);
+				break;
+
+			case KeyEvent.VK_SPACE:
+				action = new OpenInFileBrowserAction(this.tree);
+				break;
+
 			case KeyEvent.VK_DELETE:
 				if (ev.getModifiers() != 0) {
 					if (ev.isShiftDown()) {
@@ -42,10 +50,6 @@ public class ResultsTreeKeyListener implements KeyListener {
 				else {
 					action = new DeleteFileAction(this.tree);
 				}
-				break;
-
-			case KeyEvent.VK_ENTER:
-				action = new OpenInFileBrowserAction(this.tree);
 				break;
 		}
 		if (action != null) {
