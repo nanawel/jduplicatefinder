@@ -107,7 +107,7 @@ public class Digest extends JPanel implements ComparatorConfigPanel {
 		gbc_cbboxDigestAlgorithm.gridy = 1;
 		add(cbboxDigestAlgorithm, gbc_cbboxDigestAlgorithm);
 
-		lblOnlyAChunk = new JLabel("Only a chunk of this size from the beginning of the path will be used in comparison");
+		lblOnlyAChunk = new JLabel("Only a chunk of this size from the beginning of each file will be used in comparison");
 		lblOnlyAChunk.setHorizontalAlignment(SwingConstants.CENTER);
 		lblOnlyAChunk.setForeground(Color.GRAY);
 		lblOnlyAChunk.setFont(new Font("Tahoma", Font.ITALIC, 11));
