@@ -37,7 +37,7 @@ public class DeleteFileAndAllSimilarFilesAction extends AbstractAction implement
 
 		int choice = DialogHelper.showConfirmDeleteDialog(
 				targetPath,
-				"Are you sure you want to delete <b>this path</b> and <b>all files similar</b> to this one?<br/><br/>"
+				"Are you sure you want to delete <b>this file</b> and <b>all files similar</b> to this one?<br/><br/>"
 						+ Constants.HTML_TAB + targetPath.toAbsolutePath() + "<br/><br/>("
 						+ (selectedNode.getChildCount() + 1) + " path(s) will be deleted)");
 

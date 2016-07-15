@@ -58,7 +58,7 @@ public class SimilarityResult {
 	}
 
 	public AbstractDuplicateComparator getComparator() {
-		return comparator;
+		return this.comparator;
 	}
 
 	public void setComparator(AbstractDuplicateComparator comparator) {
@@ -66,23 +66,19 @@ public class SimilarityResult {
 	}
 
 	public Path getReferenceFile() {
-		return referenceFile;
+		return this.referenceFile;
 	}
 
 	public void setReferenceFile(Path referenceFile) {
 		this.referenceFile = referenceFile;
 	}
 
-	public String getCode() {
-		return code;
-	}
+	public String getCode() { return this.code; }
 
-	public void setCode(String code) {
-		this.code = code;
-	}
+	public void setCode(String code) { this.code = code; }
 
 	public float getWeight() {
-		return weight;
+		return this.weight;
 	}
 
 	public void setWeight(float weight) {

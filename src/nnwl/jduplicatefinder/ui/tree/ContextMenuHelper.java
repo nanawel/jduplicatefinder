@@ -55,7 +55,7 @@ public class ContextMenuHelper {
 		deleteAllSimilarItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_DELETE, InputEvent.SHIFT_MASK));
 		this.fileResultContextMenu.add(deleteAllSimilarItem);
 		this.fileResultContextMenu.addSeparator();
-		JMenuItem deleteFileAndAllSimilarItem = new JMenuItem("Delete this path and all similar", new ImageIcon(
+		JMenuItem deleteFileAndAllSimilarItem = new JMenuItem("Delete this file and all similar", new ImageIcon(
 				ContextMenuHelper.class.getResource("/icons/i16x16/edit-delete-shred-all.png")));
 		deleteFileAndAllSimilarItem.addActionListener(new DeleteFileAndAllSimilarFilesAction(this.tree));
 		deleteFileAndAllSimilarItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_DELETE, InputEvent.SHIFT_MASK

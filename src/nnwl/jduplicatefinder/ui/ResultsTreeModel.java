@@ -94,7 +94,7 @@ public class ResultsTreeModel extends DefaultTreeModel {
 		}
 
 		// Then add similarity results
-		for (Map.Entry<String, SimilarityResult> sr : fileResult.getCombinedSimilarityResults().entrySet()) {
+		for (Map.Entry<String, ? extends SimilarityResult> sr : fileResult.getCombinedSimilarityResults().entrySet()) {
 			fileResultNode.add(new DefaultMutableTreeNode(sr.getValue()));
 			this.totalNodesCount++;
 		}

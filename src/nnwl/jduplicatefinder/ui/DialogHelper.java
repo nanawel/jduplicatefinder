@@ -8,7 +8,7 @@ import java.nio.file.Path;
 public class DialogHelper {
 	public static int showConfirmDeleteDialog(Path path) {
 		int choice = JOptionPane.showConfirmDialog(null,
-				"<html>Are you sure you want to delete <b>this path</b>?<br/><br/>" + Constants.HTML_TAB + path.toAbsolutePath()
+				"<html>Are you sure you want to delete <b>this file</b>?<br/><br/>" + Constants.HTML_TAB + path.toAbsolutePath()
 						+ "</html>", "File deletion", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE,
 				new ImageIcon(ResultsTreeMouseListener.class.getResource("/icons/i32x32/dialog-warning.png")));
 		return choice;

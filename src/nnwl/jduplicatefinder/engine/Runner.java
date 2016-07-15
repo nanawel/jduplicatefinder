@@ -282,6 +282,10 @@ public class Runner implements Runnable {
 							results.get(fr.getKey()).appendSimilarityResults(fr.getValue().getSimilarityResults());
 						} else {
 							results.put(fr.getKey(), fr.getValue());
+
+							// FileResult needs to know what comparators have been used for combined similarity
+							// result calculation
+							fr.getValue().setCurrentRunComparators(Runner.this.comparators);
 						}
 					}
 				}

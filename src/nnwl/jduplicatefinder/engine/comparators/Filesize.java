@@ -138,7 +138,7 @@ public class Filesize extends AbstractDuplicateComparator {
 					if (absoluteMargin == 0) {
 						sr.setSimilarity(100);
 					} else {
-						sr.setSimilarity((int) Math.ceil((float) filesizeDelta / (float) absoluteMargin * 100));
+						sr.setSimilarity((int) Math.round((float) filesizeDelta / (float) absoluteMargin * 100));
 					}
 					sr.setComparator(this);
 					sr.setDescObject(filesizeDelta);
