@@ -1,4 +1,4 @@
-package tests.engine.comparators;
+package nnwl.jduplicatefinder.engine.comparators;
 
 import junit.framework.TestCase;
 import nnwl.jduplicatefinder.engine.FileResult;

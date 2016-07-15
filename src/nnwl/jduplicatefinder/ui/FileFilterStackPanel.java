@@ -303,7 +303,6 @@ public class FileFilterStackPanel extends JPanel {
 			}
 			FileFilter ff = new FileFilter(this.txtPattern.getText(), (String) this.cbboxMatches.getSelectedItem(),
 					this.rdbtngrpType.getSelection().getActionCommand());
-			ff.prepareFilter();
 			return ff;
 		}
 	}

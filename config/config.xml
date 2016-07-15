@@ -19,5 +19,17 @@
             <match>Path</match>
             <pattern><![CDATA[.*/\..*/.*$]]></pattern>
         </filter>
+        <filter>
+            <title>Audio files</title>
+            <type>Regexp</type>
+            <match>Filename</match>
+            <pattern><![CDATA[\.(mp3|wav|ogg|flac|m4a|aac|ra|rm|mpc|m4p|3gp|wma)$]]></pattern>
+        </filter>
+        <filter>
+            <title>Video files</title>
+            <type>Regexp</type>
+            <match>Filename</match>
+            <pattern><![CDATA[\.(avi|mpg|divx|mp4|mkv|wmv|flv|vob|ogv|mov|rm)$]]></pattern>
+        </filter>
     </filters>
 </jduplicatefinder>

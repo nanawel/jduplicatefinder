@@ -1,5 +1,7 @@
 package nnwl.jduplicatefinder.engine;
 
+import org.apache.log4j.Logger;
+
 import java.nio.file.Path;
 import java.util.regex.Pattern;
 
@@ -10,6 +12,9 @@ import java.util.regex.Pattern;
  * @license GPLv3 - See LICENSE
  */
 public class FileFilter {
+
+	private static final Logger logger = Logger.getLogger(FileFilter.class);
+
 	public static final String MATCH_FILENAME = "Filename";
 	public static final String MATCH_PATH = "Path";
 	public static final String[] MATCH_CHOICES = {MATCH_FILENAME, MATCH_PATH};
@@ -41,7 +46,7 @@ public class FileFilter {
 		this.setMatches(matches);
 	}
 
-	public void prepareFilter() {
+	public Pattern compilePattern() {
 		String finalPattern;
 		switch (this.type) {
 			case TYPE_SIMPLE:
@@ -51,18 +56,21 @@ public class FileFilter {
 				finalPattern = userPattern;
 				break;
 			default:
-				throw new IllegalArgumentException(this.type + " is not a valid type.");
+				throw new IllegalArgumentException(this.type + " is not a valid type of filter.");
 		}
-
-		this.pattern = Pattern.compile(finalPattern);
+		return Pattern.compile(finalPattern);
 	}
 
 	protected static String escapeSimplePattern(String p) {
 		String[] parts = p.split("\\*", -1);
 
 		StringBuffer sb = new StringBuffer();
-		for (String part : parts) {
-			sb.append(Pattern.quote(part)).append(".*");
+		for (int i = 0; i < parts.length; i++) {
+			String part = parts[i];
+			sb.append(Pattern.quote(part));
+			if (i < parts.length - 1) {
+				sb.append(".*");
+			}
 		}
 		return sb.toString();
 	}
@@ -79,7 +87,15 @@ public class FileFilter {
 			default:
 				throw new IllegalArgumentException(this.matches + " is not a valid value for matches.");
 		}
-		return this.pattern.matcher(subject).matches();
+		boolean matches = this.getRegexpPattern().matcher(subject).find();
+		if (logger.isDebugEnabled()) {
+			if (matches) {
+				logger.debug(this.toString() + " MATCHES " + subject);
+			} else {
+				logger.debug(this.toString() + " does NOT MATCH " + subject);
+			}
+		}
+		return matches;
 	}
 
 	public String getTitle() {
@@ -96,7 +112,14 @@ public class FileFilter {
 
 	public void setPattern(String pattern) {
 		this.userPattern = pattern;
-		this.prepareFilter();
+		this.pattern = null;
+	}
+
+	protected Pattern getRegexpPattern() {
+		if (this.pattern == null) {
+			this.pattern = this.compilePattern();
+		}
+		return this.pattern;
 	}
 
 	public String getMatches() {
@@ -105,7 +128,6 @@ public class FileFilter {
 
 	public void setMatches(String matches) {
 		this.matches = matches;
-		this.prepareFilter();
 	}
 
 	public String getType() {
