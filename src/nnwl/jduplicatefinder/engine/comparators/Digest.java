@@ -53,9 +53,15 @@ public class Digest extends AbstractDuplicateComparator {
 		if (parameters.containsKey("digest.algorithm")) {
 			this.algorithm = String.valueOf(parameters.get("digest.algorithm"));
 			MessageDigest.getInstance(this.algorithm);    // Check validity
+			logger.info("Using algorithm: " + this.algorithm);
+		} else {
+			logger.info("Using default algorithm: " + this.algorithm);
 		}
 		if (parameters.containsKey("digest.chunkSize")) {
 			this.chunkSize = Integer.valueOf(String.valueOf(parameters.get("digest.chunkSize")));
+			logger.info("Using chunk size: " + this.chunkSize + " bytes");
+		} else {
+			logger.info("Using default chunk size: " + this.chunkSize + " bytes");
 		}
 	}
 
@@ -78,7 +84,9 @@ public class Digest extends AbstractDuplicateComparator {
 			this.fileCache.put(fileSize, fileCacheList);
 		}
 
-		fileCacheList.add(this.digest(path));
+		CacheUnit cu = this.digest(path);
+		logger.debug(path + " (" + fileSize + " bytes): " + cu.digest);
+		fileCacheList.add(cu);
 	}
 
 	@Override
@@ -186,8 +194,7 @@ public class Digest extends AbstractDuplicateComparator {
 		}
 
 		String hexDigest = Digest.getHexString(md.digest());	// Careful! MessageDigest state's gets reset after call!
-		logger.debug(path + ": " + hexDigest);
-		logger.debug("Total bytes read: " + totalRead);
+		logger.trace("Total bytes read for " + path + ": " + totalRead);
 
 		return new CacheUnit(path, hexDigest);
 	}

@@ -163,7 +163,7 @@ public class App {
 	 * Create the application.
 	 */
 	public App() {
-		PropertyConfigurator.configure("config/log4j.conf");
+		PropertyConfigurator.configure("config/log4j.properties");
 	}
 
 	/**

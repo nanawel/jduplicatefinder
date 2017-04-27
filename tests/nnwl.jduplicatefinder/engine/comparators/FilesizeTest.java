@@ -84,12 +84,14 @@ public class FilesizeTest extends TestCase {
 				this.assertEquals(f1.toPath(), res.getValue().getReferenceFile());
 				this.assertEquals(f2.toPath(), res.getValue().getSimilarityResults().get(0).getSimilarFile());
 				this.assertEquals(100, res.getValue().getSimilarityResults().get(0).getSimilarity());
+				this.assertEquals(FileResult.NOT_UNIQUE, res.getValue().getStatus());
 			}
 			// f2 is the reference file
 			else {
 				this.assertEquals(f2.toPath(), res.getValue().getReferenceFile());
 				this.assertEquals(f1.toPath(), res.getValue().getSimilarityResults().get(0).getSimilarFile());
 				this.assertEquals(100, res.getValue().getSimilarityResults().get(0).getSimilarity());
+				this.assertEquals(FileResult.NOT_UNIQUE, res.getValue().getStatus());
 			}
 		}
 	}
@@ -117,12 +119,14 @@ public class FilesizeTest extends TestCase {
 				this.assertEquals(f1.toPath(), res.getValue().getReferenceFile());
 				this.assertEquals(f2.toPath(), res.getValue().getSimilarityResults().get(0).getSimilarFile());
 				this.assertEquals(100, res.getValue().getSimilarityResults().get(0).getSimilarity());
+				this.assertEquals(FileResult.NOT_UNIQUE, res.getValue().getStatus());
 			}
 			// f2 is the reference file
 			else {
 				this.assertEquals(f2.toPath(), res.getValue().getReferenceFile());
 				this.assertEquals(f1.toPath(), res.getValue().getSimilarityResults().get(0).getSimilarFile());
 				this.assertEquals(100, res.getValue().getSimilarityResults().get(0).getSimilarity());
+				this.assertEquals(FileResult.NOT_UNIQUE, res.getValue().getStatus());
 			}
 		}
 	}
@@ -152,6 +156,7 @@ public class FilesizeTest extends TestCase {
 
 				// 4 bytes delta on a 10 bytes margin => 60% similarity
 				this.assertEquals(60, res.getValue().getSimilarityResults().get(0).getSimilarity());
+				this.assertEquals(FileResult.NOT_UNIQUE, res.getValue().getStatus());
 			}
 			// f2 is the reference file
 			else {
@@ -160,6 +165,7 @@ public class FilesizeTest extends TestCase {
 
 				// 4 bytes delta on a 10 bytes margin => 60% similarity
 				this.assertEquals(60, res.getValue().getSimilarityResults().get(0).getSimilarity());
+				this.assertEquals(FileResult.NOT_UNIQUE, res.getValue().getStatus());
 			}
 		}
 	}
@@ -174,9 +180,11 @@ public class FilesizeTest extends TestCase {
 
 		File f1 = this.createFixedSizeFile("32b-1", 32);
 		File f2 = this.createFixedSizeFile("48b-2", 48);
+		File f3 = this.createFixedSizeFile("128b-1", 128);
 
 		this.fixture.analyze(f1.toPath());
 		this.fixture.analyze(f2.toPath());
+		this.fixture.analyze(f3.toPath());
 
 		this.fixture.run();
 		ResultsSet results = this.fixture.getResults();
@@ -189,14 +197,22 @@ public class FilesizeTest extends TestCase {
 
 				// 50% bytes delta on 32 = 16 bytes, so 16 bytes delta on a 16 bytes margin => 0% similarity (lower limit)
 				this.assertEquals(0, res.getValue().getSimilarityResults().get(0).getSimilarity());
+				this.assertEquals(FileResult.NOT_UNIQUE, res.getValue().getStatus());
 			}
 			// f2 is the reference file
-			else {
+			else if (res.getKey() == f2.toPath()) {
 				this.assertEquals(f2.toPath(), res.getValue().getReferenceFile());
 				this.assertEquals(f1.toPath(), res.getValue().getSimilarityResults().get(0).getSimilarFile());
 
 				// 50% bytes delta on 48 = 24 bytes, so 16 bytes delta on a 24 bytes margin => 33% similarity
 				this.assertEquals(33, res.getValue().getSimilarityResults().get(0).getSimilarity());
+				this.assertEquals(FileResult.NOT_UNIQUE, res.getValue().getStatus());
+			}
+			// f3 is the reference file
+			else if (res.getKey() == f3.toPath()) {
+				this.assertEquals(f3.toPath(), res.getValue().getReferenceFile());
+				this.assertNull(res.getValue().getSimilarityResults());
+				this.assertEquals(FileResult.UNIQUE, res.getValue().getStatus());
 			}
 		}
 	}
