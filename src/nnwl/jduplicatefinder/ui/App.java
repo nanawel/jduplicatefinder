@@ -52,7 +52,7 @@ import java.util.Map;
 public class App {
 	public static String APP_NAME = "JDuplicateFinder";
 
-	public static String APP_VERSION = "1.3";
+	public static String APP_VERSION = "1.4";
 
 	private static final Logger logger = Logger.getLogger(App.class);
 
@@ -207,7 +207,7 @@ public class App {
 			@Override
 			public void mouseClicked(MouseEvent e) {
 				try {
-					Desktop.getDesktop().browse(new URI("http://www.lanterne-rouge.info/"));
+					Desktop.getDesktop().browse(new URI("https://www.lanterne-rouge.info/"));
 				} catch (Exception e1) {
 				}
 			}
@@ -405,6 +405,7 @@ public class App {
 	@SuppressWarnings("rawtypes")
 	public static Class[] getComparatorsUiConfig() {
 		return new Class[]{
+				nnwl.jduplicatefinder.ui.comparators.config.Filename.class,
 				nnwl.jduplicatefinder.ui.comparators.config.Filesize.class,
 				nnwl.jduplicatefinder.ui.comparators.config.Digest.class,
 				nnwl.jduplicatefinder.ui.comparators.config.DateTime.class};

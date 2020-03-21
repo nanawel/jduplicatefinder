@@ -128,7 +128,7 @@ public class FileDiffPanel extends JPanel {
 		this.repaint();
 	}
 
-	private JComponent createOpenFileButton(File f) {
+	private JComponent createOpenFileButton(final File f) {
 		JButton button = new JButton("Open file");
 		button.addActionListener(new ActionListener() {
 			@Override

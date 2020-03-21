@@ -95,4 +95,21 @@ public class FileResult {
 		}
 		return this.combinedSimilarityResults;
 	}
+
+	public String toString() {
+		StringBuilder sb = new StringBuilder();
+
+		sb.append(this.getClass())
+			.append(": ")
+			.append(this.referenceFile.toString())
+			.append(" {\n");
+		for (Map.Entry<String, ? extends SimilarityResult> csr : this.getCombinedSimilarityResults().entrySet()) {
+			sb.append(String.format("  [%3d] ", csr.getValue().getSimilarity()))
+				.append(csr.getValue().getSimilarFile().toString())
+				.append("\n");
+		}
+		sb.append("}");
+
+		return sb.toString();
+	}
 }
