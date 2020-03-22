@@ -255,4 +255,16 @@ public class ResultsTreeModel extends DefaultTreeModel {
 		}
 		return results;
 	}
+
+	public Path[] getRootPaths() {
+		Path[] rootPaths = new Path[this.getRoot().getChildCount()];
+		for (int i = 0; i < this.getRoot().getChildCount(); i++) {
+			rootPaths[i] = (Path) ((DefaultMutableTreeNode) this.getRoot().getChildAt(i)).getUserObject();
+		}
+		return rootPaths;
+	}
+
+	public boolean hasSingleRoot() {
+		return this.getRoot().getChildCount() == 1;
+	}
 }

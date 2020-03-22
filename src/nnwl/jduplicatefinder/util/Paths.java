@@ -72,7 +72,7 @@ public class Paths {
 	}
 
 	/**
-	 * Returns the common path of the given paths, or NULL if they roots
+	 * Returns the common path of the given paths, or NULL if their roots
 	 * do not match.
 	 *
 	 * @param paths

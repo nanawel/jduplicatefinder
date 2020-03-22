@@ -6,3 +6,6 @@
 
 /bin
 /export
+/.idea
+/.project
+/jduplicatefinder.iml

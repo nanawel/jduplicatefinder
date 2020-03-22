@@ -2,6 +2,7 @@ package nnwl.jduplicatefinder.ui.tree.renderer;
 
 import nnwl.jduplicatefinder.engine.FileResult;
 import nnwl.jduplicatefinder.engine.SimilarityResult;
+import nnwl.jduplicatefinder.ui.ResultsTreeModel;
 import org.apache.log4j.Logger;
 
 import javax.swing.*;
@@ -65,7 +66,7 @@ public class ResultsTreeCellRenderer extends DefaultTreeCellRenderer {
 			stringValue = "<html><b>" + stringValue + "</b></html>";
 		} else if (userObject instanceof SimilarityResult) {
 			SimilarityResult sr = (SimilarityResult) userObject;
-			stringValue = "<html><b>[" + sr.getSimilarity() + "%]</b> " + sr.getSimilarFile().toAbsolutePath() + "</html>";
+			stringValue = this.getSimilarityResultLabel((ResultsTreeModel) tree.getModel(), sr);
 			float similarity = (float) ((SimilarityResult) userObject).getSimilarity();
 			int index = (int) Math.floor(similarity / 25) * 25;
 			switch (index) {
@@ -99,5 +100,17 @@ public class ResultsTreeCellRenderer extends DefaultTreeCellRenderer {
 		this.setIcon(icon);
 
 		return this;
+	}
+
+	protected String getSimilarityResultLabel(ResultsTreeModel treeModel, SimilarityResult sr) {
+		String path;
+		if (treeModel.hasSingleRoot()) {
+			path = sr.getSimilarFile().toAbsolutePath().toString().substring(
+					treeModel.getRootPaths()[0].toString().length()
+			);
+		} else {
+			path = sr.getSimilarFile().toAbsolutePath().toString();
+		}
+		return String.format("<html><b>[%d%%]</b> %s</html>", sr.getSimilarity(), path);
 	}
 }

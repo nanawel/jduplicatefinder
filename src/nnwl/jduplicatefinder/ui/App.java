@@ -395,10 +395,8 @@ public class App {
 		tree.setContextMenuHelper(new ContextMenuHelper(tree));
 		tree.setCellRenderer(new ResultsTreeCellRenderer());
 		tree.addMouseListener(new ResultsTreeMouseListener(tree));
-		// if (isLeft) {
 		tree.addTreeSelectionListener(new ResultsTreeSelectionListener());
 		tree.addKeyListener(new ResultsTreeKeyListener(tree));
-		// }
 		return tree;
 	}
 
