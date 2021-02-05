@@ -47,12 +47,12 @@ import java.util.Map;
  * JDuplicateFinder
  *
  * @author Anael Ollier <nanawel NOSPAM [at] gmail [dot] com>
- * @license GPLv3 - See LICENSE
+ * @license See LICENSE
  */
 public class App {
 	public static String APP_NAME = "JDuplicateFinder";
 
-	public static String APP_VERSION = "1.4";
+	public static String APP_VERSION = "1.5";
 
 	private static final Logger logger = Logger.getLogger(App.class);
 
