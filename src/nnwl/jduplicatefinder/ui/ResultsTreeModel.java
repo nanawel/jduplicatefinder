@@ -241,6 +241,7 @@ public class ResultsTreeModel extends DefaultTreeModel {
 	public void resetResults() {
 		this.getRoot().removeAllChildren();
 		this.fileResultNodes.clear();
+		this.directoryNodes.clear();
 		this.totalNodesCount = 0;
 		logger.debug("Results have been reset");
 	}
