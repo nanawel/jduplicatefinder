@@ -2,6 +2,7 @@ package nnwl.jduplicatefinder.engine;
 
 import org.apache.log4j.Logger;
 
+import java.io.File;
 import java.nio.file.Path;
 import java.util.regex.Pattern;
 
@@ -14,6 +15,15 @@ import java.util.regex.Pattern;
 public class FileFilter {
 
 	private static final Logger logger = Logger.getLogger(FileFilter.class);
+
+	public static final String POLICY_EXCLUDE = "Exclude";
+	public static final String POLICY_INCLUDE = "Include";
+	public static final String[] POLICY_CHOICES = {POLICY_EXCLUDE, POLICY_INCLUDE};
+
+	public static final String FILETYPE_FILES = "Files";
+	public static final String FILETYPE_DIRS = "Directories";
+	public static final String FILETYPE_ALL = "All";
+	public static final String[] FILETYPE_CHOICES = {FILETYPE_FILES, FILETYPE_DIRS, FILETYPE_ALL};
 
 	public static final String MATCH_FILENAME = "Filename";
 	public static final String MATCH_PATH = "Path";
@@ -28,6 +38,10 @@ public class FileFilter {
 
 	protected String title;
 
+	protected String policy;
+
+	protected String filetype;
+
 	protected String userPattern;
 
 	protected String matches;
@@ -41,9 +55,19 @@ public class FileFilter {
 	}
 
 	public FileFilter(String pattern, String matches, String type) {
+		this(pattern, matches, type, POLICY_EXCLUDE);
+	}
+
+	public FileFilter(String pattern, String matches, String type, String policy) {
+		this(pattern, matches, type, FILETYPE_FILES, policy);
+	}
+
+	public FileFilter(String pattern, String matches, String type, String filetype, String policy) {
 		this.setType(type);
 		this.setPattern(pattern);
 		this.setMatches(matches);
+		this.setFiletype(filetype);
+		this.setPolicy(policy);
 	}
 
 	public Pattern compilePattern() {
@@ -75,7 +99,19 @@ public class FileFilter {
 		return sb.toString();
 	}
 
-	public boolean matches(Path p) {
+	public boolean shouldInclude(File f) {
+		// Preliminary filter on filetype
+		if (this.filetype.equals(FILETYPE_FILES) && f.isDirectory()) {
+			return true;
+		}
+		if (this.filetype.equals(FILETYPE_DIRS) && !f.isDirectory()) {
+			return true;
+		}
+
+		return this.shouldInclude(f.toPath());
+	}
+
+	public boolean shouldInclude(Path p) {
 		String subject;
 		switch (this.matches) {
 			case MATCH_FILENAME:
@@ -87,15 +123,31 @@ public class FileFilter {
 			default:
 				throw new IllegalArgumentException(this.matches + " is not a valid value for matches.");
 		}
+
 		boolean matches = this.getRegexpPattern().matcher(subject).find();
+		boolean shouldInclude;
+
+		// Invert result depending on policy
+		switch (this.policy) {
+			case POLICY_EXCLUDE:
+				shouldInclude = !matches;
+				break;
+			case POLICY_INCLUDE:
+				shouldInclude = matches;
+				break;
+			default:
+				throw new IllegalArgumentException(this.policy + " is not a valid value for policy.");
+		}
+
 		if (logger.isDebugEnabled()) {
-			if (matches) {
-				logger.debug(this.toString() + " MATCHES " + subject);
+			if (shouldInclude) {
+				logger.debug(this.toString() + " SHOULD include " + subject);
 			} else {
-				logger.debug(this.toString() + " does NOT MATCH " + subject);
+				logger.debug(this.toString() + " should NOT include " + subject);
 			}
 		}
-		return matches;
+
+		return shouldInclude;
 	}
 
 	public String getTitle() {
@@ -104,6 +156,22 @@ public class FileFilter {
 
 	public void setTitle(String title) {
 		this.title = title;
+	}
+
+	public String getPolicy() {
+		return policy;
+	}
+
+	public void setPolicy(String policy) {
+		this.policy = policy;
+	}
+
+	public String getFiletype() {
+		return filetype;
+	}
+
+	public void setFiletype(String filetype) {
+		this.filetype = filetype;
 	}
 
 	public String getPattern() {
@@ -140,8 +208,17 @@ public class FileFilter {
 
 	public String toString() {
 		StringBuffer sb = new StringBuffer(FileFilter.class.toString());
-		sb.append(" [Pattern=\"").append(this.userPattern).append("\", Matches=").append(this.matches)
-				.append(", Type=").append(this.type).append("]");
+		sb.append("[")
+			.append(this.policy.toUpperCase())
+			.append(" Filetype=")
+			.append(this.filetype)
+			.append(", Pattern=\"")
+			.append(this.userPattern)
+			.append("\", Matches=")
+			.append(this.matches)
+			.append(", Type=")
+			.append(this.type)
+			.append("]");
 		return sb.toString();
 	}
 }

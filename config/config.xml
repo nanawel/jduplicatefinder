@@ -3,33 +3,43 @@
     <filters>
         <filter>
             <title>Windows Thumbnails DB Files (Thumbs.db)</title>
-            <type>Simple</type>
-            <match>Filename</match>
+            <policy>Exclude</policy>
+            <filetype>Files</filetype>
             <pattern>Thumbs.db</pattern>
+            <match>Filename</match>
+            <type>Simple</type>
         </filter>
         <filter>
             <title>DVD Information Files (*.IFO, *.BUP)</title>
-            <type>Regexp</type>
-            <match>Filename</match>
+            <policy>Exclude</policy>
+            <filetype>Files</filetype>
             <pattern><![CDATA[.*\.(IFO|BUP)]]></pattern>
+            <match>Filename</match>
+            <type>Regexp</type>
         </filter>
         <filter>
-            <title>(UNIX) Files under hidden directory</title>
-            <type>Regexp</type>
-            <match>Path</match>
-            <pattern><![CDATA[.*/\..*/.*$]]></pattern>
+            <title>(UNIX) Hidden directories content</title>
+            <policy>Exclude</policy>
+            <filetype>Directories</filetype>
+            <pattern><![CDATA[.*]]></pattern>
+            <match>Filename</match>
+            <type>Simple</type>
         </filter>
         <filter>
             <title>Audio files</title>
-            <type>Regexp</type>
-            <match>Filename</match>
+            <policy>Include</policy>
+            <filetype>Files</filetype>
             <pattern><![CDATA[\.(mp3|wav|ogg|flac|m4a|aac|ra|rm|mpc|m4p|3gp|wma)$]]></pattern>
+            <match>Filename</match>
+            <type>Regexp</type>
         </filter>
         <filter>
             <title>Video files</title>
-            <type>Regexp</type>
-            <match>Filename</match>
+            <policy>Include</policy>
+            <filetype>Files</filetype>
             <pattern><![CDATA[\.(avi|mpg|divx|mp4|mkv|wmv|flv|vob|ogv|mov|rm)$]]></pattern>
+            <match>Filename</match>
+            <type>Regexp</type>
         </filter>
     </filters>
 </jduplicatefinder>

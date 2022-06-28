@@ -172,14 +172,14 @@ public class Runner implements Runnable {
 				}
 
 				if (f.isDirectory() && this.recurseSubdirectories) {
-					if (this.matchesFilter(f.toPath())) {
+					if (!this.shouldAnalyze(f)) {
 						logger.debug("Skipping filtered directory: " + f.getAbsolutePath());
 					} else {
 						dirs.add(f.toPath());
 					}
 				} else if (f.isFile()) {
 					totalFiles++;
-					if (this.matchesFilter(f.toPath())) {
+					if (!this.shouldAnalyze(f)) {
 						logger.debug("Skipping filtered path: " + f.getAbsolutePath());
 						this.filteredFiles.add(f.toPath());
 					} else {
@@ -318,15 +318,15 @@ public class Runner implements Runnable {
 		return results;
 	}
 
-	protected boolean matchesFilter(Path p) {
+	protected boolean shouldAnalyze(File f) {
 		if (this.fileFilters != null) {
 			for (FileFilter ff : this.fileFilters) {
-				if (ff.matches(p)) {
-					return true;
+				if (!ff.shouldInclude(f)) {
+					return false;
 				}
 			}
 		}
-		return false;
+		return true;
 	}
 
 	protected RunnerEvent getNewEvent() {

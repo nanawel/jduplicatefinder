@@ -52,7 +52,7 @@ import java.util.Map;
 public class App {
 	public static String APP_NAME = "JDuplicateFinder";
 
-	public static String APP_VERSION = "1.5";
+	public static String APP_VERSION = "1.6";
 
 	private static final Logger logger = Logger.getLogger(App.class);
 
@@ -147,8 +147,13 @@ public class App {
 			List<HierarchicalConfiguration> filterNodes = config.configurationsAt("filters.filter");
 			List<FileFilter> filters = new ArrayList<>();
 			for (HierarchicalConfiguration filterNode : filterNodes) {
-				FileFilter ff = new FileFilter(filterNode.getString("pattern"), filterNode.getString("match"),
-						filterNode.getString("type"));
+				FileFilter ff = new FileFilter(
+					filterNode.getString("pattern"),
+					filterNode.getString("match"),
+					filterNode.getString("type"),
+					filterNode.getString("filetype"),
+					filterNode.getString("policy")
+				);
 				ff.setTitle(filterNode.getString("title"));
 				filters.add(ff);
 			}
@@ -207,7 +212,7 @@ public class App {
 			@Override
 			public void mouseClicked(MouseEvent e) {
 				try {
-					Desktop.getDesktop().browse(new URI("https://www.lanterne-rouge.info/"));
+					Desktop.getDesktop().browse(new URI("https://github.com/nanawel/jduplicatefinder"));
 				} catch (Exception e1) {
 				}
 			}
@@ -224,7 +229,7 @@ public class App {
 				lblAbout.setCursor(Cursor.getDefaultCursor());
 			}
 		});
-		lblAbout.setToolTipText("Go to author's blog");
+		lblAbout.setToolTipText("Go to Git repository");
 		toolBar.add(lblAbout);
 
 		// //////////

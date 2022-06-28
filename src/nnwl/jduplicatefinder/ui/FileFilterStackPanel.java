@@ -40,7 +40,7 @@ public class FileFilterStackPanel extends JPanel {
 		setLayout(new BorderLayout(0, 0));
 
 		JPanel mainPanel = new JPanel();
-		mainPanel.setBorder(new TitledBorder(null, "Ignore files and directories matching the following filters:",
+		mainPanel.setBorder(new TitledBorder(null, "Ignore files or directories matching the following filters:",
 				TitledBorder.LEADING, TitledBorder.TOP, null, null));
 		add(mainPanel, BorderLayout.CENTER);
 		mainPanel.setLayout(new BorderLayout(0, 0));
@@ -67,8 +67,7 @@ public class FileFilterStackPanel extends JPanel {
 		scrollPane.setViewportView(filtersContainer);
 		filtersContainer.setLayout(new BoxLayout(filtersContainer, BoxLayout.Y_AXIS));
 
-		// DEBUG
-		//this.addEmptyFilter();
+		this.addDefaultFilter();
 	}
 
 	public void setPredefinedFilters(List<FileFilter> filters) {
@@ -131,8 +130,24 @@ public class FileFilterStackPanel extends JPanel {
 		this.addFilter();
 	}
 
+	public void addDefaultFilter() {
+		this.addFilter(
+			"*",
+			FileFilter.MATCH_FILENAME,
+			FileFilter.TYPE_SIMPLE,
+			FileFilter.FILETYPE_DIRS,
+			FileFilter.POLICY_INCLUDE
+		);
+	}
+
 	public void addFilter(String pattern, String matches, String type) {
+		this.addFilter(pattern, matches, type, FileFilter.FILETYPE_ALL, FileFilter.POLICY_EXCLUDE);
+	}
+
+	public void addFilter(String pattern, String matches, String type, String filetype, String policy) {
 		Filter f = this.addFilter();
+		f.setPolicy(policy);
+		f.setFiletype(filetype);
 		f.setPattern(pattern);
 		f.setMatches(matches);
 		f.setType(type);
@@ -153,11 +168,15 @@ public class FileFilterStackPanel extends JPanel {
 	private class Filter extends JPanel {
 		private static final long serialVersionUID = 8064480803876696578L;
 
+		private JComboBox<String> cbboxPolicy;
+
+		private JComboBox<String> cbboxFiletype;
+
 		private JTextField txtPattern;
 
 		protected ButtonGroup rdbtngrpType;
 
-		protected JRadioButton rdbtnType[];
+		protected JRadioButton[] rdbtnType;
 
 		protected JComboBox<String> cbboxMatches;
 
@@ -170,11 +189,29 @@ public class FileFilterStackPanel extends JPanel {
 			int gridx = 0;
 
 			GridBagLayout gbl_this = new GridBagLayout();
-			gbl_this.columnWidths = new int[]{0, 0, 0, 0, 0, 0, 0, 0, 0};
+			gbl_this.columnWidths = new int[]{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
 			gbl_this.rowHeights = new int[]{0, 0};
-			gbl_this.columnWeights = new double[]{0.0, 1.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0};
+			gbl_this.columnWeights = new double[]{0.0, 0.0, 0.0, 1.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0};
 			gbl_this.rowWeights = new double[]{0.0, Double.MIN_VALUE};
 			this.setLayout(gbl_this);
+
+			cbboxPolicy = new JComboBox<String>();
+			cbboxPolicy.setModel(new DefaultComboBoxModel(FileFilter.POLICY_CHOICES));
+			GridBagConstraints gbc_cbboxPolicy = new GridBagConstraints();
+			gbc_cbboxPolicy.insets = new Insets(0, 5, 0, 5);
+			gbc_cbboxPolicy.fill = GridBagConstraints.HORIZONTAL;
+			gbc_cbboxPolicy.gridx = gridx++;
+			gbc_cbboxPolicy.gridy = 0;
+			this.add(cbboxPolicy, gbc_cbboxPolicy);
+
+			cbboxFiletype = new JComboBox<String>();
+			cbboxFiletype.setModel(new DefaultComboBoxModel(FileFilter.FILETYPE_CHOICES));
+			GridBagConstraints gbc_cbboxFiletype = new GridBagConstraints();
+			gbc_cbboxFiletype.insets = new Insets(0, 5, 0, 5);
+			gbc_cbboxFiletype.fill = GridBagConstraints.HORIZONTAL;
+			gbc_cbboxFiletype.gridx = gridx++;
+			gbc_cbboxFiletype.gridy = 0;
+			this.add(cbboxFiletype, gbc_cbboxFiletype);
 
 			JLabel lblFilter = new JLabel("Filter:");
 			GridBagConstraints gbc_lblFilter = new GridBagConstraints();
@@ -273,6 +310,26 @@ public class FileFilterStackPanel extends JPanel {
 			this.setPattern(ff.getPattern());
 			this.setMatches(ff.getMatches());
 			this.setType(ff.getType());
+			this.setPolicy(ff.getPolicy());
+			this.setFiletype(ff.getFiletype());
+		}
+
+		public void setPolicy(String policy) {
+			for (int i = 0; i < FileFilter.POLICY_CHOICES.length; i++) {
+				if (FileFilter.POLICY_CHOICES[i].equals(policy)) {
+					this.cbboxPolicy.setSelectedIndex(i);
+					break;
+				}
+			}
+		}
+
+		public void setFiletype(String filetype) {
+			for (int i = 0; i < FileFilter.FILETYPE_CHOICES.length; i++) {
+				if (FileFilter.FILETYPE_CHOICES[i].equals(filetype)) {
+					this.cbboxFiletype.setSelectedIndex(i);
+					break;
+				}
+			}
 		}
 
 		public void setPattern(String pattern) {
@@ -301,8 +358,13 @@ public class FileFilterStackPanel extends JPanel {
 			if (this.txtPattern.getText().isEmpty()) {
 				return null;
 			}
-			FileFilter ff = new FileFilter(this.txtPattern.getText(), (String) this.cbboxMatches.getSelectedItem(),
-					this.rdbtngrpType.getSelection().getActionCommand());
+			FileFilter ff = new FileFilter(
+				this.txtPattern.getText(),
+				(String) this.cbboxMatches.getSelectedItem(),
+				this.rdbtngrpType.getSelection().getActionCommand(),
+				(String) this.cbboxFiletype.getSelectedItem(),
+				(String) this.cbboxPolicy.getSelectedItem()
+			);
 			return ff;
 		}
 	}
